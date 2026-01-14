@@ -2,7 +2,7 @@ name: Auto Scraper
 
 on:
   schedule:
-    - cron: '*/10 * * * *' # 每10分钟执行一次
+    - cron: '*/1 * * * *' # 每10分钟执行一次
   workflow_dispatch: # 允许手动点击按钮测试
 
 permissions:
