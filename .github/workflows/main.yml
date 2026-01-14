@@ -1,13 +1,8 @@
 name: Run Scraper
-env: 
-          # 注入环境变量
-  FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
-  FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
-  FEISHU_SHEET_TOKEN: ${{ secrets.FEISHU_SHEET_TOKEN }}
-  run: node scrape.js
+
 on:
   schedule:
-    - cron: '*/5 * * * *' # 每5分钟执行一次
+    - cron: '*/5 * * * *' # 每5分钟尝试执行一次
   workflow_dispatch: # 允许手动点击按钮测试
 
 permissions:
@@ -29,6 +24,11 @@ jobs:
         run: npm install
 
       - name: Run Scraper
+        # 👇 修正重点：env 必须放在具体的 step 下面，缩进要对齐
+        env: 
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_SHEET_TOKEN: ${{ secrets.FEISHU_SHEET_TOKEN }}
         run: node scrape.js
 
       - name: Commit and push
