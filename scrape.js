@@ -1,75 +1,89 @@
-const puppeteer = require('puppeteer-core'); 
+const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 
+// 目标网址
 const TARGET_URL = 'https://www.woko.pro/h/502/miemie';
 
 (async () => {
-  console.log('1. 启动虚拟浏览器...');
+  console.log('1. 启动高速浏览器...');
   
   const browser = await puppeteer.launch({
     headless: "new",
-    executablePath: '/usr/bin/google-chrome', 
+    executablePath: '/usr/bin/google-chrome', // 使用服务器自带浏览器，秒开
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
-
   try {
     const page = await browser.newPage();
-
-    // 设置浏览器视口大小
     await page.setViewport({ width: 1920, height: 1080 });
-
-    // 伪装 User-Agent
+    
+    // 伪装成真人访问
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-    console.log('2. 正在打开网页，等待加载...');
-    // 访问网页，waitUntil: 'networkidle0' 表示等待网络不再活跃（即加载完成）
+    console.log('2. 正在打开网页...');
+    // 等待网页加载完成 (networkidle0 代表网络空闲，即加载好了)
     await page.goto(TARGET_URL, { waitUntil: 'networkidle0', timeout: 60000 });
+    
+    // 额外等待 3 秒，确保文字渲染完毕
+    await new Promise(r => setTimeout(r, 3000));
 
-    // 为了保险，额外死等 5 秒，确保卡片渲染出来
-    console.log('3. 网页已打开，额外等待 5 秒让数据渲染...');
-    await new Promise(r => setTimeout(r, 5000));
-
-    // 开始抓取数据（在浏览器内部执行代码）
-    console.log('4. 开始提取数据...');
+    console.log('3. 开始智能提取数据...');
     const accounts = await page.evaluate(() => {
       const results = [];
       
-      // 在页面中寻找所有可能的容器
-      // 策略：遍历所有 div，寻找同时包含 "账号" 和 "密码" 且有 input 的块
-      const allDivs = document.querySelectorAll('div, .card, .panel');
+      // 遍历所有可能的卡片容器
+      const allDivs = document.querySelectorAll('div, .card');
       
       allDivs.forEach(div => {
-        // 防止重复处理：只处理直接包含 input 的那一层，或者最接近的那一层
-        // 简单粗暴法：检查文本内容
         const text = div.innerText || "";
-        
+        // 筛选条件：必须同时包含账号和密码输入框
         if (text.includes('账号') && text.includes('密码')) {
             const inputs = div.querySelectorAll('input');
             
-            // 如果这个 div 里确实有两个 input，大概率就是我们要的
             if (inputs.length >= 2) {
                 const username = inputs[0].value;
                 const password = inputs[1].value;
 
                 if (username && username.includes('@')) {
-                    // 获取地区（尝试找 badge）
-                    // 这种写法是在浏览器里运行的 DOM 操作
-                    let region = "未知";
-                    const badge = div.querySelector('.badge') || div.querySelector('span[class*="flag"]');
-                    if(badge) region = badge.innerText.trim().split(/\s+/)[0];
-
-                    // 获取状态
+                    
+                    // =========== 核心修改开始 ===========
+                    
+                    // 1. 先找到“状态” (因为我们知道"正常"两个字肯定有颜色，容易找)
                     let status = "正常";
-                    const statusEl = div.querySelector('.text-success') || div.querySelector('.badge-success');
+                    const statusEl = div.querySelector('.text-success') || div.querySelector('.badge-success') || div.querySelector('.badge');
                     if(statusEl) status = statusEl.innerText.trim();
 
-                    // 避免重复添加（因为 querySelectorAll 可能会选到嵌套的父级 div）
-                    // 我们只添加没见过的账号
+                    // 2. 根据“状态”的位置，反推“地区”
+                    // 逻辑：地区通常和状态在同一行（即父元素相同）
+                    let region = "未知";
+                    if (statusEl && statusEl.parentElement) {
+                        // 克隆这一整行
+                        const headerLine = statusEl.parentElement.cloneNode(true);
+                        
+                        // 把“状态”标签（如“正常”）删掉
+                        const badgeToRemove = headerLine.querySelector('.text-success') || headerLine.querySelector('.badge-success') || headerLine.querySelector('.badge');
+                        if (badgeToRemove) badgeToRemove.remove();
+                        
+                        // 剩下的文字就是“地区”了（可能包含图标文字，如 "JP 日本"，都保留下来）
+                        region = headerLine.innerText.trim();
+                        
+                        // 清理一下多余的空格
+                        region = region.replace(/\s+/g, ' '); 
+                    }
+                    
+                    // 如果上面的方法没抓到，尝试找标题元素
+                    if (!region || region === "") {
+                         const title = div.querySelector('.card-title') || div.querySelector('h5') || div.querySelector('strong');
+                         if (title) region = title.innerText.replace(status, '').trim();
+                    }
+
+                    // =========== 核心修改结束 ===========
+
+                    // 去重并保存
                     const exists = results.find(r => r.username === username);
                     if (!exists) {
                         results.push({
-                            region,
+                            region,    // 这里现在应该能抓到 "日本" 或 "JP 日本"
                             status,
                             username,
                             password,
@@ -83,16 +97,15 @@ const TARGET_URL = 'https://www.woko.pro/h/502/miemie';
       return results;
     });
 
-    console.log(`5. 抓取完成！共找到 ${accounts.length} 个账号。`);
+    console.log(`4. 抓取完成！共找到 ${accounts.length} 个账号。`);
 
-    // 保存数据
     fs.writeFileSync('data.json', JSON.stringify({
         updated_at: new Date().getTime(),
         data: accounts
     }, null, 2));
 
   } catch (error) {
-    console.error('❌ 发生错误:', error);
+    console.error('❌ 错误:', error);
     process.exit(1);
   } finally {
     await browser.close();
