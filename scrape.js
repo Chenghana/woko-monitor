@@ -11,7 +11,7 @@ const SHEET_TOKEN = process.env.FEISHU_SHEET_TOKEN;
 (async () => {
   console.log('1. 🚀 任务启动...');
   
-  // 1. 先进行飞书鉴权 (获取 token)
+  // 1. 飞书鉴权
   let accessToken = "";
   if (APP_ID && APP_SECRET && SHEET_TOKEN) {
       try {
@@ -46,7 +46,7 @@ const SHEET_TOKEN = process.env.FEISHU_SHEET_TOKEN;
     await page.goto(TARGET_URL, { waitUntil: 'networkidle0', timeout: 60000 });
     await new Promise(r => setTimeout(r, 4000));
 
-    // === 精准提取逻辑 ===
+    // === 精准抓取逻辑 ===
     const accounts = await page.evaluate(() => {
         const results = [];
         const inputs = document.querySelectorAll('input');
@@ -64,7 +64,6 @@ const SHEET_TOKEN = process.env.FEISHU_SHEET_TOKEN;
                     let region = "未知";
                     let status = "正常";
                     
-                    // 尝试从头部获取信息
                     const header = card.querySelector('.flex.justify-between') || card.firstElementChild;
                     if (header) {
                         const statusEl = header.querySelector('.text-emerald-700') || Array.from(header.querySelectorAll('div,span')).find(el => el.innerText.includes('正常'));
@@ -77,7 +76,6 @@ const SHEET_TOKEN = process.env.FEISHU_SHEET_TOKEN;
                             if (leftSide) region = leftSide.innerText.trim().split(/\s+/).pop();
                         }
                     }
-                    // 兜底逻辑
                     if(region === "未知" && card.innerText.includes("账号")) {
                          region = card.innerText.split("账号")[0].replace(/正常|异常|封禁|●/g, "").trim().split(/\s+/).pop();
                     }
@@ -91,10 +89,8 @@ const SHEET_TOKEN = process.env.FEISHU_SHEET_TOKEN;
 
     console.log(`3. 抓取完成，共 ${accounts.length} 条数据。`);
     
-    // 保存本地备份
     fs.writeFileSync('data.json', JSON.stringify({ updated_at: new Date().getTime(), data: accounts }, null, 2));
 
-    // 3. 同步到飞书
     if (accessToken && accounts.length > 0) {
         await syncToFeishu(accessToken, accounts);
     }
@@ -107,36 +103,54 @@ const SHEET_TOKEN = process.env.FEISHU_SHEET_TOKEN;
   }
 })();
 
-// === 飞书同步函数 (自动识别表名) ===
+// === 飞书同步函数 (自动写表头版) ===
 async function syncToFeishu(accessToken, data) {
     try {
         console.log('4. 正在查询表格信息...');
         
-        // 关键步骤：查询工作表真实的名称 (是 Sheet1 还是 工作表1)
         const metaRes = await fetch(`https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${SHEET_TOKEN}/sheets/query`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         const metaJson = await metaRes.json();
         
-        if (metaJson.code !== 0) {
-            throw new Error(`查询表格失败: ${JSON.stringify(metaJson)} (请检查机器人是否已加入表格)`);
-        }
+        if (metaJson.code !== 0) throw new Error(`查询表格失败: ${JSON.stringify(metaJson)}`);
 
-        // 获取第一个工作表的真实名字
+        // 获取 sheet_id
         const firstSheet = metaJson.data.sheets[0];
-        const realSheetName = firstSheet.title;
-        console.log(`   -> 识别到工作表名称为: "${realSheetName}"`);
+        const realSheetId = firstSheet.sheet_id;
 
-        // 准备数据
-        const checkTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-        const values = data.map(item => [item.region, item.status, item.username, item.password, checkTime]);
+        // ==========================================
+        // 👇 核心修改：在这里定义对应关系，绝对不会乱
+        // ==========================================
         
-        // 填充空行，覆盖旧数据
-        while (values.length < 50) values.push(["", "", "", "", ""]);
+        // 1. 定义表头 (必须和下面的数据顺序一致)
+        const header = ["地区", "状态", "账号", "密码", "更新时间"];
+        
+        // 2. 准备数据行
+        const checkTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+        
+        const dataRows = data.map(item => [
+            item.region,   // 对应 "地区" (A列)
+            item.status,   // 对应 "状态" (B列)
+            item.username, // 对应 "账号" (C列)
+            item.password, // 对应 "密码" (D列)
+            checkTime      // 对应 "更新时间" (E列)
+        ]);
 
-        // 使用查到的真实名字写入
-        const range = `${realSheetName}!A2:E${values.length + 1}`;
+        // 3. 将表头和数据合并成一个大数组
+        // [
+        //   ["地区", "状态", ...],  <-- 第1行
+        //   ["台湾", "正常", ...],  <-- 第2行
+        //   ["香港", "正常", ...]   <-- 第3行
+        // ]
+        const allValues = [header, ...dataRows];
+
+        // 4. 填充空行 (防止旧数据残留)
+        while (allValues.length < 50) allValues.push(["", "", "", "", ""]);
+
+        // 5. 从 A1 开始写入 (连表头一起覆盖，确保永远正确)
+        const range = `${realSheetId}!A1:E${allValues.length}`;
         console.log(`   -> 正在写入 (Range: ${range})...`);
 
         const writeRes = await fetch(`https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/${SHEET_TOKEN}/values`, {
@@ -148,17 +162,15 @@ async function syncToFeishu(accessToken, data) {
             body: JSON.stringify({
                 "valueRange": {
                     "range": range,
-                    "values": values
+                    "values": allValues
                 }
             })
         });
 
         const writeJson = await writeRes.json();
-        if (writeJson.code !== 0) {
-            throw new Error(`写入失败: ${JSON.stringify(writeJson)}`);
-        }
+        if (writeJson.code !== 0) throw new Error(`写入失败: ${JSON.stringify(writeJson)}`);
         
-        console.log('🎉 成功！数据已更新到飞书表格！');
+        console.log('🎉 成功！表头和数据已完美对齐！');
 
     } catch (e) {
         console.error('❌ 飞书同步失败:', e.message);
