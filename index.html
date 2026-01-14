@@ -152,7 +152,7 @@
         // ===========================================
 
         // 使用 CDN 加速读取数据
-        const dataUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_USERNAME}/${REPO_NAME}@main/data.json?t=${new Date().getTime()}`;
+        const dataUrl = `./data.json?t=${new Date().getTime()}`;
 
         fetch(dataUrl)
             .then(res => {
