@@ -1,0 +1,40 @@
+name: Auto Scraper
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # 每10分钟执行一次
+  workflow_dispatch: # 允许手动点击按钮测试
+
+permissions:
+  contents: write
+
+jobs:
+  scrape-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Scraper
+        run: node scrape.js
+
+      - name: Commit and push
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          # 检查是否有变化
+          if [[ -n $(git status -s data.json) ]]; then
+            git add data.json
+            git commit -m "Auto update data: $(date)"
+            git push
+          else
+            echo "No changes found, skipping commit."
+          fi
