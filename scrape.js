@@ -2,59 +2,67 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
-// 目标网址
 const TARGET_URL = 'https://www.woko.pro/h/502/miemie';
 
 async function scrape() {
   try {
-    console.log('1. 开始请求目标网站...');
+    console.log('1. 正在伪装成 Chrome 浏览器发起请求...');
+    
     const { data } = await axios.get(TARGET_URL, {
       headers: {
-        // 伪装成浏览器，防止被拦截
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        // 【关键修复】添加全套浏览器标识，模拟真实用户
+        'Host': 'www.woko.pro',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Referer': 'https://www.woko.pro/',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Ch-Ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"Windows"',
+        'Connection': 'keep-alive',
+        'Cache-Control': 'max-age=0'
       },
-      timeout: 10000 // 10秒超时
+      timeout: 20000 // 延长超时时间到20秒
     });
 
-    console.log('2. 网页下载成功，开始解析...');
+    console.log('2. 请求成功！开始解析数据...');
     const $ = cheerio.load(data);
     const accounts = [];
 
-    // 根据常见结构查找所有卡片
-    // 逻辑：寻找包含 "账号" 或 "密码" 字样的区域
-    //以此定位每一个包含账号信息的卡片块
-    $('.card, .panel, .list-group-item, div[class*="col-"]').each((i, el) => {
+    // 针对您截图的卡片结构进行解析
+    $('div').each((i, el) => {
         const text = $(el).text();
-        // 只有当这个块里同时包含 "账号" 和 "密码" 时，才认为它是有效数据卡片
-        if(text.includes('账号') && text.includes('密码')) {
+        // 必须同时包含“账号”和“密码”才处理
+        if(text.includes('账号') && text.includes('密码') && $(el).find('input').length > 0) {
             
-            // 提取地区（通常在 badge 或 span 里）
+            // 提取地区
             let region = $(el).find('.badge, span[class*="flag"]').first().text().trim();
+            region = region.replace(/\s+/g, ' ').split(' ')[0]; 
+
             // 提取状态
-            let status = $(el).find('.badge-success, .text-success').text().trim() || '正常';
-            
-            // 提取输入框中的账号和密码
+            let status = $(el).find('.text-success, .badge-success').text().trim() || '正常';
+
+            // 提取输入框
             const inputs = $(el).find('input');
             let username = '';
             let password = '';
+            
+            inputs.each((idx, input) => {
+                const val = $(input).val();
+                if(val && val.includes('@')) username = val;
+                else if(val && idx === 1) password = val;
+            });
 
-            if (inputs.length >= 2) {
-                username = inputs.eq(0).val(); // 第一个输入框通常是账号
-                password = inputs.eq(1).val(); // 第二个输入框通常是密码
-            } else {
-                // 如果不是 input，尝试获取文本
-                // 这里是备用逻辑，防止网页改版
-                const lines = $(el).text().split('\n');
-                lines.forEach(line => {
-                    if(line.includes('@')) username = line.trim();
-                });
-            }
+            // 兜底逻辑
+            if(!username && inputs.eq(0).val()) username = inputs.eq(0).val();
+            if(!password && inputs.eq(1).val()) password = inputs.eq(1).val();
 
-            // 过滤无效数据，只有当账号存在时才保存
-            if (username && username.includes('@')) {
-                // 去重逻辑：防止同一个卡片被多次解析
-                const exists = accounts.find(a => a.username === username);
-                if (!exists) {
+            // 保存有效数据
+            if (username && password) {
+                // 简单去重
+                if (!accounts.find(a => a.username === username)) {
                     accounts.push({
                         region: region || '未知',
                         status: status,
@@ -68,24 +76,24 @@ async function scrape() {
     });
 
     console.log(`3. 解析完成，共提取到 ${accounts.length} 个账号。`);
-
-    // 如果没有抓到数据，抛出错误警告（可在 GitHub Actions 日志中看到）
-    if (accounts.length === 0) {
-        console.warn('⚠️ 警告：未找到账号数据，可能是网站改版或选择器失效。');
-    }
-
-    // 保存文件
-    const output = {
-        updated_at: new Date().getTime(),
-        data: accounts
-    };
     
-    fs.writeFileSync('data.json', JSON.stringify(output, null, 2));
-    console.log('4. 数据已保存至 data.json');
+    // 即使没抓到数据，也要生成一个空文件，防止报错
+    const outputData = accounts.length > 0 ? accounts : [];
+    
+    fs.writeFileSync('data.json', JSON.stringify({
+        updated_at: new Date().getTime(),
+        data: outputData
+    }, null, 2));
 
   } catch (error) {
-    console.error('❌ 抓取失败:', error.message);
-    process.exit(1); // 报错退出，让 GitHub 通知你
+    // 打印更详细的错误信息
+    if (error.response) {
+      console.error(`❌ 服务器拒绝: 状态码 ${error.response.status}`);
+      console.error('错误详情:', error.response.data);
+    } else {
+      console.error('❌ 请求失败:', error.message);
+    }
+    process.exit(1);
   }
 }
 
