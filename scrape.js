@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core'); 
 const fs = require('fs');
 
 const TARGET_URL = 'https://www.woko.pro/h/502/miemie';
@@ -6,11 +6,12 @@ const TARGET_URL = 'https://www.woko.pro/h/502/miemie';
 (async () => {
   console.log('1. 启动虚拟浏览器...');
   
-  // 启动浏览器（无头模式，适合服务器运行）
   const browser = await puppeteer.launch({
     headless: "new",
-    args: ['--no-sandbox', '--disable-setuid-sandbox'] // GitHub Actions 必须的参数
+    executablePath: '/usr/bin/google-chrome', 
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
+
 
   try {
     const page = await browser.newPage();
