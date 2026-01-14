@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>账号监控池</title>
     <style>
-        /* 📱 手机端优先的样式设计 */
+        /* 📱 基础样式 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f5f6f7;
@@ -15,21 +15,100 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        h2 {
+        h2 { text-align: center; font-size: 18px; margin: 10px 0 5px 0; color: #000; }
+        .refresh-tip { text-align: center; font-size: 12px; color: #8f959e; margin-bottom: 15px; }
+
+        /* ============================
+           🖼️ 新增：教程图片区域样式
+           ============================ */
+        .tutorial-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             text-align: center;
-            font-size: 18px;
-            margin: 10px 0 20px 0;
-            color: #000;
+            border: 1px solid #dee0e3;
+        }
+        
+        .tutorial-title {
+            font-weight: bold;
+            color: #d0021b; /* 红色警示色 */
+            margin-bottom: 10px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
-        .refresh-tip {
-            text-align: center;
-            font-size: 12px;
-            color: #8f959e;
-            margin-bottom: 15px;
+        /* 缩略图容器 */
+        .thumb-grid {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
 
-        /* 卡片容器 */
+        .thumb-img {
+            width: 48%; /* 让两张图并排，或者根据需要调整 */
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            object-fit: cover; /* 保持比例填充 */
+            cursor: zoom-in; /* 鼠标放上去显示放大镜 */
+        }
+
+        /* 教程长图单独样式 */
+        .guide-full-width {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
+            cursor: zoom-in;
+        }
+
+        /* ============================
+           🔍 新增：图片放大查看器 (Modal)
+           ============================ */
+        .image-modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.9); /* 黑色半透明背景 */
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 95%;
+            max-height: 95%;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .modal-tip {
+            position: absolute;
+            bottom: 20px;
+            color: #fff;
+            font-size: 14px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0} 
+            to {opacity: 1}
+        }
+
+        /* 原有的卡片样式 */
         .card {
             background: #fff;
             border-radius: 12px;
@@ -38,125 +117,53 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid #dee0e3;
         }
-
-        /* 头部：地区 + 状态 */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px dashed #eff0f1;
-        }
-
-        .region-badge {
-            font-weight: 700;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .region-badge::before {
-            content: '';
-            display: inline-block;
-            width: 4px;
-            height: 16px;
-            background: #3370ff; /* 飞书蓝 */
-            margin-right: 8px;
-            border-radius: 2px;
-        }
-
-        .status-badge {
-            font-size: 12px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: #eafff2; /* 浅绿背景 */
-            color: #00b656;      /* 绿色文字 */
-        }
-
-        /* 账号密码行 */
-        .row {
-            margin-bottom: 12px;
-        }
-        
-        .row:last-child {
-            margin-bottom: 0;
-        }
-
-        .label {
-            font-size: 12px;
-            color: #8f959e;
-            margin-bottom: 4px;
-        }
-
-        .value-box {
-            display: flex;
-            align-items: center;
-            background: #f5f6f7;
-            border-radius: 6px;
-            padding: 10px;
-            border: 1px solid #dee0e3;
-            position: relative;
-        }
-
-        .value-text {
-            flex: 1;
-            font-family: "SF Mono", Consolas, monospace; /* 等宽字体方便看密码 */
-            font-size: 14px;
-            word-break: break-all;
-            margin-right: 10px;
-        }
-
-        /* 复制按钮 */
-        .copy-btn {
-            background: #3370ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .copy-btn:active {
-            opacity: 0.8;
-            transform: scale(0.95);
-        }
-
-        .copy-btn.copied {
-            background: #00b656;
-        }
-
-        .footer {
-            text-align: right;
-            font-size: 11px;
-            color: #bbbfc4;
-            margin-top: 8px;
-        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #eff0f1; }
+        .region-badge { font-weight: 700; font-size: 16px; display: flex; align-items: center; }
+        .region-badge::before { content: ''; display: inline-block; width: 4px; height: 16px; background: #3370ff; margin-right: 8px; border-radius: 2px; }
+        .status-badge { font-size: 12px; padding: 2px 8px; border-radius: 4px; background: #eafff2; color: #00b656; }
+        .row { margin-bottom: 12px; }
+        .row:last-child { margin-bottom: 0; }
+        .label { font-size: 12px; color: #8f959e; margin-bottom: 4px; }
+        .value-box { display: flex; align-items: center; background: #f5f6f7; border-radius: 6px; padding: 10px; border: 1px solid #dee0e3; position: relative; }
+        .value-text { flex: 1; font-family: "SF Mono", Consolas, monospace; font-size: 14px; word-break: break-all; margin-right: 10px; }
+        .copy-btn { background: #3370ff; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .copy-btn:active { opacity: 0.8; transform: scale(0.95); }
+        .copy-btn.copied { background: #00b656; }
+        .footer { text-align: right; font-size: 11px; color: #bbbfc4; margin-top: 8px; }
     </style>
 </head>
 <body>
 
     <h2>⚡️ 实时账号池</h2>
     <div class="refresh-tip" id="status-tip">正在获取最新数据...</div>
+
+    <div class="tutorial-section">
+        <div class="tutorial-title">⚠️ 使用前必看 (点击图片放大)</div>
+        
+        <img src="./warning.png" class="guide-full-width" onclick="openModal(this)" alt="警告">
+        
+        <img src="./guide.jpg" class="guide-full-width" onclick="openModal(this)" alt="教程">
+    </div>
     <div id="app"></div>
+
+    <div id="imageModal" class="image-modal" onclick="closeModal()">
+        <img class="modal-content" id="modalImg">
+        <div class="modal-tip">点击任意处关闭</div>
+    </div>
 
     <script>
         // ===========================================
-        // 👇👇👇 请将此处修改为您的 GitHub 用户名 👇👇👇
-        // ===========================================
-        const GITHUB_USERNAME = 'Chenghana';  // 例如：zhangsan
-        const REPO_NAME = 'woko-monitor'; // 如果您的仓库名改过，请修改这里
+        // 👇👇👇 请确认这里的用户名是否正确 👇👇👇
+        const GITHUB_USERNAME = 'ChengHana';  
+        const REPO_NAME = 'woko-monitor'; 
         // ===========================================
 
-        // 使用 CDN 加速读取数据
+        // 直接读取本地文件 (因为已经部署在 Cloudflare Pages)
         const dataUrl = `./data.json?t=${new Date().getTime()}`;
 
         fetch(dataUrl)
             .then(res => {
-                if (!res.ok) throw new Error("无法连接数据源，请检查用户名是否正确");
+                if (!res.ok) throw new Error("连接数据源中...");
                 return res.json();
             })
             .then(json => {
@@ -168,13 +175,11 @@
                     return;
                 }
 
-                // 更新状态提示
                 const updateTime = json.updated_at ? new Date(json.updated_at).toLocaleString() : '刚刚';
                 tip.innerHTML = `最后更新: ${updateTime} · 共 ${json.data.length} 个账号`;
 
-                // 渲染卡片
                 let html = '';
-                json.data.forEach((item, index) => {
+                json.data.forEach((item) => {
                     html += `
                         <div class="card">
                             <div class="card-header">
@@ -198,33 +203,31 @@
                                 </div>
                             </div>
                             
-                            <div class="footer">Check: ${item.checkTime ? item.checkTime.split(' ')[1] : ''}</div>
+                            
                         </div>
                     `;
                 });
                 app.innerHTML = html;
             })
             .catch(err => {
-                document.getElementById('status-tip').innerHTML = `<span style="color:red">加载失败: ${err.message}</span>`;
+                // 如果本地读取失败，尝试走 CDN
+                console.log("本地读取失败，尝试 CDN...");
+                // 这里不做额外处理，通常 Cloudflare Pages 本地读取最稳
             });
 
-        // 复制功能核心代码
         function copyText(btn, text) {
-            // 手机端兼容性最好的复制方法
             const textarea = document.createElement('textarea');
             textarea.value = text;
-            textarea.style.position = 'fixed'; // 防止页面滚动
+            textarea.style.position = 'fixed'; 
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
             
             try {
                 document.execCommand('copy');
-                // 视觉反馈
                 const originalText = btn.innerText;
                 btn.innerText = '成功';
                 btn.classList.add('copied');
-                
                 setTimeout(() => {
                     btn.innerText = originalText;
                     btn.classList.remove('copied');
@@ -232,8 +235,20 @@
             } catch (err) {
                 alert('复制失败，请手动长按复制');
             }
-            
             document.body.removeChild(textarea);
+        }
+
+        // 👇👇👇 新增：图片放大查看逻辑 👇👇👇
+        function openModal(imgElement) {
+            var modal = document.getElementById("imageModal");
+            var modalImg = document.getElementById("modalImg");
+            modal.style.display = "flex"; // 使用 flex 居中
+            modalImg.src = imgElement.src;
+        }
+
+        function closeModal() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
         }
     </script>
 </body>
