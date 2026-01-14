@@ -1,100 +1,99 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 const fs = require('fs');
 
 const TARGET_URL = 'https://www.woko.pro/h/502/miemie';
 
-async function scrape() {
+(async () => {
+  console.log('1. 启动虚拟浏览器...');
+  
+  // 启动浏览器（无头模式，适合服务器运行）
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] // GitHub Actions 必须的参数
+  });
+
   try {
-    console.log('1. 正在伪装成 Chrome 浏览器发起请求...');
-    
-    const { data } = await axios.get(TARGET_URL, {
-      headers: {
-        // 【关键修复】添加全套浏览器标识，模拟真实用户
-        'Host': 'www.woko.pro',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Referer': 'https://www.woko.pro/',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Ch-Ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-        'Sec-Ch-Ua-Mobile': '?0',
-        'Sec-Ch-Ua-Platform': '"Windows"',
-        'Connection': 'keep-alive',
-        'Cache-Control': 'max-age=0'
-      },
-      timeout: 20000 // 延长超时时间到20秒
-    });
+    const page = await browser.newPage();
 
-    console.log('2. 请求成功！开始解析数据...');
-    const $ = cheerio.load(data);
-    const accounts = [];
+    // 设置浏览器视口大小
+    await page.setViewport({ width: 1920, height: 1080 });
 
-    // 针对您截图的卡片结构进行解析
-    $('div').each((i, el) => {
-        const text = $(el).text();
-        // 必须同时包含“账号”和“密码”才处理
-        if(text.includes('账号') && text.includes('密码') && $(el).find('input').length > 0) {
+    // 伪装 User-Agent
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+
+    console.log('2. 正在打开网页，等待加载...');
+    // 访问网页，waitUntil: 'networkidle0' 表示等待网络不再活跃（即加载完成）
+    await page.goto(TARGET_URL, { waitUntil: 'networkidle0', timeout: 60000 });
+
+    // 为了保险，额外死等 5 秒，确保卡片渲染出来
+    console.log('3. 网页已打开，额外等待 5 秒让数据渲染...');
+    await new Promise(r => setTimeout(r, 5000));
+
+    // 开始抓取数据（在浏览器内部执行代码）
+    console.log('4. 开始提取数据...');
+    const accounts = await page.evaluate(() => {
+      const results = [];
+      
+      // 在页面中寻找所有可能的容器
+      // 策略：遍历所有 div，寻找同时包含 "账号" 和 "密码" 且有 input 的块
+      const allDivs = document.querySelectorAll('div, .card, .panel');
+      
+      allDivs.forEach(div => {
+        // 防止重复处理：只处理直接包含 input 的那一层，或者最接近的那一层
+        // 简单粗暴法：检查文本内容
+        const text = div.innerText || "";
+        
+        if (text.includes('账号') && text.includes('密码')) {
+            const inputs = div.querySelectorAll('input');
             
-            // 提取地区
-            let region = $(el).find('.badge, span[class*="flag"]').first().text().trim();
-            region = region.replace(/\s+/g, ' ').split(' ')[0]; 
+            // 如果这个 div 里确实有两个 input，大概率就是我们要的
+            if (inputs.length >= 2) {
+                const username = inputs[0].value;
+                const password = inputs[1].value;
 
-            // 提取状态
-            let status = $(el).find('.text-success, .badge-success').text().trim() || '正常';
+                if (username && username.includes('@')) {
+                    // 获取地区（尝试找 badge）
+                    // 这种写法是在浏览器里运行的 DOM 操作
+                    let region = "未知";
+                    const badge = div.querySelector('.badge') || div.querySelector('span[class*="flag"]');
+                    if(badge) region = badge.innerText.trim().split(/\s+/)[0];
 
-            // 提取输入框
-            const inputs = $(el).find('input');
-            let username = '';
-            let password = '';
-            
-            inputs.each((idx, input) => {
-                const val = $(input).val();
-                if(val && val.includes('@')) username = val;
-                else if(val && idx === 1) password = val;
-            });
+                    // 获取状态
+                    let status = "正常";
+                    const statusEl = div.querySelector('.text-success') || div.querySelector('.badge-success');
+                    if(statusEl) status = statusEl.innerText.trim();
 
-            // 兜底逻辑
-            if(!username && inputs.eq(0).val()) username = inputs.eq(0).val();
-            if(!password && inputs.eq(1).val()) password = inputs.eq(1).val();
-
-            // 保存有效数据
-            if (username && password) {
-                // 简单去重
-                if (!accounts.find(a => a.username === username)) {
-                    accounts.push({
-                        region: region || '未知',
-                        status: status,
-                        username: username,
-                        password: password,
-                        checkTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
-                    });
+                    // 避免重复添加（因为 querySelectorAll 可能会选到嵌套的父级 div）
+                    // 我们只添加没见过的账号
+                    const exists = results.find(r => r.username === username);
+                    if (!exists) {
+                        results.push({
+                            region,
+                            status,
+                            username,
+                            password,
+                            checkTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+                        });
+                    }
                 }
             }
         }
+      });
+      return results;
     });
 
-    console.log(`3. 解析完成，共提取到 ${accounts.length} 个账号。`);
-    
-    // 即使没抓到数据，也要生成一个空文件，防止报错
-    const outputData = accounts.length > 0 ? accounts : [];
-    
+    console.log(`5. 抓取完成！共找到 ${accounts.length} 个账号。`);
+
+    // 保存数据
     fs.writeFileSync('data.json', JSON.stringify({
         updated_at: new Date().getTime(),
-        data: outputData
+        data: accounts
     }, null, 2));
 
   } catch (error) {
-    // 打印更详细的错误信息
-    if (error.response) {
-      console.error(`❌ 服务器拒绝: 状态码 ${error.response.status}`);
-      console.error('错误详情:', error.response.data);
-    } else {
-      console.error('❌ 请求失败:', error.message);
-    }
+    console.error('❌ 发生错误:', error);
     process.exit(1);
+  } finally {
+    await browser.close();
   }
-}
-
-scrape();
+})();
