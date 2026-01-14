@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>账号监控池</title>
+    <style>
+        /* 📱 手机端优先的样式设计 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f6f7;
+            margin: 0;
+            padding: 15px;
+            color: #1f2329;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 18px;
+            margin: 10px 0 20px 0;
+            color: #000;
+        }
+
+        .refresh-tip {
+            text-align: center;
+            font-size: 12px;
+            color: #8f959e;
+            margin-bottom: 15px;
+        }
+
+        /* 卡片容器 */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #dee0e3;
+        }
+
+        /* 头部：地区 + 状态 */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #eff0f1;
+        }
+
+        .region-badge {
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .region-badge::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: #3370ff; /* 飞书蓝 */
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #eafff2; /* 浅绿背景 */
+            color: #00b656;      /* 绿色文字 */
+        }
+
+        /* 账号密码行 */
+        .row {
+            margin-bottom: 12px;
+        }
+        
+        .row:last-child {
+            margin-bottom: 0;
+        }
+
+        .label {
+            font-size: 12px;
+            color: #8f959e;
+            margin-bottom: 4px;
+        }
+
+        .value-box {
+            display: flex;
+            align-items: center;
+            background: #f5f6f7;
+            border-radius: 6px;
+            padding: 10px;
+            border: 1px solid #dee0e3;
+            position: relative;
+        }
+
+        .value-text {
+            flex: 1;
+            font-family: "SF Mono", Consolas, monospace; /* 等宽字体方便看密码 */
+            font-size: 14px;
+            word-break: break-all;
+            margin-right: 10px;
+        }
+
+        /* 复制按钮 */
+        .copy-btn {
+            background: #3370ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .copy-btn:active {
+            opacity: 0.8;
+            transform: scale(0.95);
+        }
+
+        .copy-btn.copied {
+            background: #00b656;
+        }
+
+        .footer {
+            text-align: right;
+            font-size: 11px;
+            color: #bbbfc4;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>⚡️ 实时账号池</h2>
+    <div class="refresh-tip" id="status-tip">正在获取最新数据...</div>
+    <div id="app"></div>
+
+    <script>
+        // ===========================================
+        // 👇👇👇 请将此处修改为您的 GitHub 用户名 👇👇👇
+        // ===========================================
+        const GITHUB_USERNAME = 'Chenghana';  // 例如：zhangsan
+        const REPO_NAME = 'woko-monitor'; // 如果您的仓库名改过，请修改这里
+        // ===========================================
+
+        // 使用 CDN 加速读取数据
+        const dataUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_USERNAME}/${REPO_NAME}@main/data.json?t=${new Date().getTime()}`;
+
+        fetch(dataUrl)
+            .then(res => {
+                if (!res.ok) throw new Error("无法连接数据源，请检查用户名是否正确");
+                return res.json();
+            })
+            .then(json => {
+                const app = document.getElementById('app');
+                const tip = document.getElementById('status-tip');
+                
+                if (!json.data || json.data.length === 0) {
+                    app.innerHTML = '<div style="text-align:center;padding:20px;color:#999">暂无可用数据</div>';
+                    return;
+                }
+
+                // 更新状态提示
+                const updateTime = json.updated_at ? new Date(json.updated_at).toLocaleString() : '刚刚';
+                tip.innerHTML = `最后更新: ${updateTime} · 共 ${json.data.length} 个账号`;
+
+                // 渲染卡片
+                let html = '';
+                json.data.forEach((item, index) => {
+                    html += `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="region-badge">${item.region || '未知区域'}</div>
+                                <div class="status-badge">● ${item.status}</div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="label">账号</div>
+                                <div class="value-box">
+                                    <div class="value-text">${item.username}</div>
+                                    <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="label">密码</div>
+                                <div class="value-box">
+                                    <div class="value-text">${item.password}</div>
+                                    <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
+                                </div>
+                            </div>
+                            
+                            <div class="footer">Check: ${item.checkTime ? item.checkTime.split(' ')[1] : ''}</div>
+                        </div>
+                    `;
+                });
+                app.innerHTML = html;
+            })
+            .catch(err => {
+                document.getElementById('status-tip').innerHTML = `<span style="color:red">加载失败: ${err.message}</span>`;
+            });
+
+        // 复制功能核心代码
+        function copyText(btn, text) {
+            // 手机端兼容性最好的复制方法
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; // 防止页面滚动
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                // 视觉反馈
+                const originalText = btn.innerText;
+                btn.innerText = '成功';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove('copied');
+                }, 1500);
+            } catch (err) {
+                alert('复制失败，请手动长按复制');
+            }
+            
+            document.body.removeChild(textarea);
+        }
+    </script>
+</body>
+</html>
