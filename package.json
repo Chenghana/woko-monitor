@@ -2,6 +2,6 @@
   "name": "woko-scraper",
   "version": "1.0.0",
   "dependencies": {
-    "puppeteer": "^21.0.0"
+    "puppeteer-core": "^21.0.0"
   }
 }
