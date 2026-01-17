@@ -18,7 +18,6 @@
 
         h2 { text-align: center; font-size: 18px; margin: 10px 0 5px 0; color: #000; }
         
-        /* 统计数据的样式 */
         .visitor-count {
             text-align: center;
             font-size: 12px;
@@ -28,89 +27,52 @@
             justify-content: center;
             gap: 15px;
         }
-        .visitor-count span {
-            font-family: monospace; /* 数字用等宽字体好看点 */
-            font-weight: bold;
-            color: #3370ff;
-        }
-
+        .visitor-count span { font-family: monospace; font-weight: bold; color: #3370ff; }
         .refresh-tip { text-align: center; font-size: 12px; color: #8f959e; margin-bottom: 15px; }
 
-        /* 教程区域样式 */
         .tutorial-section {
             background: #fff;
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            text-align: center;
             border: 1px solid #dee0e3;
         }
         
         .tutorial-title {
             font-weight: bold;
-            color: #d0021b; /* 红色警示色 */
+            color: #d0021b;
             margin-bottom: 10px;
             font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+            text-align: center;
         }
 
-        .guide-full-width {
-            width: 100%;
-            margin-top: 10px;
-            border-radius: 8px;
-            cursor: zoom-in;
+        /* 👇👇👇 修改点：图片并排容器 👇👇👇 */
+        .image-row {
+            display: flex;            /* 弹性布局 */
+            justify-content: center;  /* 水平居中 */
+            align-items: center;      /* 垂直对齐 */
+            gap: 10px;                /* 图片间距 */
         }
 
-        /* 放大查看器样式 */
-        .image-modal {
-            display: none; 
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.9);
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.2s;
+        /* 👇👇👇 修改点：图片样式 👇👇👇 */
+        .side-by-side-img {
+            width: 48%;               /* 两个约占一半，留点缝隙 */
+            height: auto;             /* 高度自适应 */
+            border-radius: 6px;
+            border: 1px solid #eee;
+            cursor: zoom-in;          /* 放大镜光标 */
+            object-fit: cover;        /* 保持比例填充 */
         }
 
-        .modal-content {
-            margin: auto;
-            display: block;
-            max-width: 95%;
-            max-height: 95%;
-            border-radius: 5px;
-            box-shadow: 0 0 20px rgba(255,255,255,0.2);
-        }
-
-        .modal-tip {
-            position: absolute;
-            bottom: 20px;
-            color: #fff;
-            font-size: 14px;
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-        }
-
+        /* 放大查看器 */
+        .image-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; animation: fadeIn 0.2s; }
+        .modal-content { margin: auto; display: block; max-width: 95%; max-height: 95%; border-radius: 5px; }
+        .modal-tip { position: absolute; bottom: 20px; color: #fff; font-size: 14px; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
         @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
 
         /* 卡片样式 */
-        .card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 1px solid #dee0e3;
-        }
+        .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); border: 1px solid #dee0e3; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #eff0f1; }
         .region-badge { font-weight: 700; font-size: 16px; display: flex; align-items: center; }
         .region-badge::before { content: ''; display: inline-block; width: 4px; height: 16px; background: #3370ff; margin-right: 8px; border-radius: 2px; }
@@ -131,22 +93,20 @@
     <h2>⚡️ 实时账号池</h2>
     
     <div class="visitor-count">
-        <span id="busuanzi_container_site_uv" style="display:none">
-            👤 访客: <span id="busuanzi_value_site_uv">--</span> 人
-        </span>
-        <span id="busuanzi_container_site_pv" style="display:none">
-            👁️ 浏览: <span id="busuanzi_value_site_pv">--</span> 次
-        </span>
+        <span id="busuanzi_container_site_uv" style="display:none">👤 访客: <span id="busuanzi_value_site_uv">--</span></span>
+        <span id="busuanzi_container_site_pv" style="display:none">👁️ 浏览: <span id="busuanzi_value_site_pv">--</span></span>
     </div>
 
     <div class="refresh-tip" id="status-tip">正在获取最新数据...</div>
 
     <div class="tutorial-section">
         <div class="tutorial-title">⚠️ 使用前必看 (点击图片放大)</div>
-        <img src="./warning.png" class="guide-full-width" onclick="openModal(this)" alt="警告">
-        <img src="./guide.jpg" class="guide-full-width" onclick="openModal(this)" alt="教程">
+        
+        <div class="image-row">
+            <img src="./warning.png" class="side-by-side-img" onclick="openModal(this)" alt="警告">
+            <img src="./guide.jpg" class="side-by-side-img" onclick="openModal(this)" alt="教程">
+        </div>
     </div>
-
     <div id="app"></div>
 
     <div id="imageModal" class="image-modal" onclick="closeModal()">
@@ -161,7 +121,6 @@
         const REPO_NAME = 'woko-monitor'; 
         // ===========================================
 
-        // ✅ 恢复为：读取本地文件 (稳定，不依赖 Gist)
         const dataUrl = `./data.json?t=${new Date().getTime()}`;
 
         fetch(dataUrl)
@@ -209,9 +168,7 @@
                 });
                 app.innerHTML = html;
             })
-            .catch(err => {
-                console.log("本地读取失败，尝试 CDN...");
-            });
+            .catch(err => { console.log("本地读取失败"); });
 
         function copyText(btn, text) {
             const textarea = document.createElement('textarea');
@@ -229,9 +186,7 @@
                     btn.innerText = originalText;
                     btn.classList.remove('copied');
                 }, 1500);
-            } catch (err) {
-                alert('复制失败，请手动长按复制');
-            }
+            } catch (err) { alert('复制失败'); }
             document.body.removeChild(textarea);
         }
 
