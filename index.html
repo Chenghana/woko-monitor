@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>账号监控池</title>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     <style>
         /* 📱 基础样式 */
         body {
@@ -16,11 +17,26 @@
         }
 
         h2 { text-align: center; font-size: 18px; margin: 10px 0 5px 0; color: #000; }
+        
+        /* 统计数据的样式 */
+        .visitor-count {
+            text-align: center;
+            font-size: 12px;
+            color: #646a73;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .visitor-count span {
+            font-family: monospace; /* 数字用等宽字体好看点 */
+            font-weight: bold;
+            color: #3370ff;
+        }
+
         .refresh-tip { text-align: center; font-size: 12px; color: #8f959e; margin-bottom: 15px; }
 
-        /* ============================
-           🖼️ 新增：教程图片区域样式
-           ============================ */
+        /* 教程区域样式 */
         .tutorial-section {
             background: #fff;
             border-radius: 12px;
@@ -42,23 +58,6 @@
             gap: 5px;
         }
 
-        /* 缩略图容器 */
-        .thumb-grid {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .thumb-img {
-            width: 48%; /* 让两张图并排，或者根据需要调整 */
-            height: auto;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            object-fit: cover; /* 保持比例填充 */
-            cursor: zoom-in; /* 鼠标放上去显示放大镜 */
-        }
-
-        /* 教程长图单独样式 */
         .guide-full-width {
             width: 100%;
             margin-top: 10px;
@@ -66,11 +65,9 @@
             cursor: zoom-in;
         }
 
-        /* ============================
-           🔍 新增：图片放大查看器 (Modal)
-           ============================ */
+        /* 放大查看器样式 */
         .image-modal {
-            display: none; /* 默认隐藏 */
+            display: none; 
             position: fixed;
             z-index: 9999;
             left: 0;
@@ -78,7 +75,7 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.9); /* 黑色半透明背景 */
+            background-color: rgba(0,0,0,0.9);
             align-items: center;
             justify-content: center;
             animation: fadeIn 0.2s;
@@ -103,12 +100,9 @@
             border-radius: 20px;
         }
 
-        @keyframes fadeIn {
-            from {opacity: 0} 
-            to {opacity: 1}
-        }
+        @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
 
-        /* 原有的卡片样式 */
+        /* 卡片样式 */
         .card {
             background: #fff;
             border-radius: 12px;
@@ -135,15 +129,24 @@
 <body>
 
     <h2>⚡️ 实时账号池</h2>
+    
+    <div class="visitor-count">
+        <span id="busuanzi_container_site_uv" style="display:none">
+            👤 访客: <span id="busuanzi_value_site_uv">--</span> 人
+        </span>
+        <span id="busuanzi_container_site_pv" style="display:none">
+            👁️ 浏览: <span id="busuanzi_value_site_pv">--</span> 次
+        </span>
+    </div>
+
     <div class="refresh-tip" id="status-tip">正在获取最新数据...</div>
 
     <div class="tutorial-section">
         <div class="tutorial-title">⚠️ 使用前必看 (点击图片放大)</div>
-        
         <img src="./warning.png" class="guide-full-width" onclick="openModal(this)" alt="警告">
-        
         <img src="./guide.jpg" class="guide-full-width" onclick="openModal(this)" alt="教程">
     </div>
+
     <div id="app"></div>
 
     <div id="imageModal" class="image-modal" onclick="closeModal()">
@@ -158,7 +161,7 @@
         const REPO_NAME = 'woko-monitor'; 
         // ===========================================
 
-        // 直接读取本地文件 (因为已经部署在 Cloudflare Pages)
+        // ✅ 恢复为：读取本地文件 (稳定，不依赖 Gist)
         const dataUrl = `./data.json?t=${new Date().getTime()}`;
 
         fetch(dataUrl)
@@ -186,7 +189,6 @@
                                 <div class="region-badge">${item.region || '未知区域'}</div>
                                 <div class="status-badge">● ${item.status}</div>
                             </div>
-                            
                             <div class="row">
                                 <div class="label">账号</div>
                                 <div class="value-box">
@@ -194,7 +196,6 @@
                                     <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
                                 </div>
                             </div>
-
                             <div class="row">
                                 <div class="label">密码</div>
                                 <div class="value-box">
@@ -202,17 +203,14 @@
                                     <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
                                 </div>
                             </div>
-                            
-                            
+                            <div class="footer">Check: ${item.checkTime ? item.checkTime.split(' ')[1] : ''}</div>
                         </div>
                     `;
                 });
                 app.innerHTML = html;
             })
             .catch(err => {
-                // 如果本地读取失败，尝试走 CDN
                 console.log("本地读取失败，尝试 CDN...");
-                // 这里不做额外处理，通常 Cloudflare Pages 本地读取最稳
             });
 
         function copyText(btn, text) {
@@ -222,7 +220,6 @@
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
-            
             try {
                 document.execCommand('copy');
                 const originalText = btn.innerText;
@@ -238,11 +235,10 @@
             document.body.removeChild(textarea);
         }
 
-        // 👇👇👇 新增：图片放大查看逻辑 👇👇👇
         function openModal(imgElement) {
             var modal = document.getElementById("imageModal");
             var modalImg = document.getElementById("modalImg");
-            modal.style.display = "flex"; // 使用 flex 居中
+            modal.style.display = "flex";
             modalImg.src = imgElement.src;
         }
 
