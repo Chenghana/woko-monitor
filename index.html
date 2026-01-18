@@ -29,26 +29,51 @@
         }
         .visitor-count span { font-family: monospace; font-weight: bold; color: #3370ff; }
         
-        /* 锁定提示条 */
+        /* 👇👇👇 新增：倒计时提示条样式 👇👇👇 */
         .lock-tip { 
-            text-align: center; font-size: 12px; color: #d0021b; 
-            margin-bottom: 15px; background: #fff0f0; padding: 8px; 
-            border-radius: 6px; border: 1px solid #ffdbdb; display: none; 
+            text-align: center; 
+            font-size: 12px; 
+            color: #d0021b; /* 红色 */
+            margin-bottom: 15px;
+            background: #fff0f0;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ffdbdb;
+            display: none; /* 默认隐藏 */
         }
 
         .tutorial-section {
-            background: #fff; border-radius: 12px; padding: 15px; 
-            margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); 
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid #dee0e3;
         }
         
         .tutorial-title {
-            font-weight: bold; color: #d0021b; margin-bottom: 10px; 
-            font-size: 15px; text-align: center;
+            font-weight: bold;
+            color: #d0021b;
+            margin-bottom: 10px;
+            font-size: 15px;
+            text-align: center;
         }
 
-        .image-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .side-by-side-img { width: 48%; height: auto; border-radius: 6px; border: 1px solid #eee; cursor: zoom-in; object-fit: cover; }
+        .image-row {
+            display: flex;            
+            justify-content: center;  
+            align-items: center;      
+            gap: 10px;                
+        }
+
+        .side-by-side-img {
+            width: 48%;               
+            height: auto;             
+            border-radius: 6px;
+            border: 1px solid #eee;
+            cursor: zoom-in;          
+            object-fit: cover;        
+        }
 
         .image-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; animation: fadeIn 0.2s; }
         .modal-content { margin: auto; display: block; max-width: 95%; max-height: 95%; border-radius: 5px; }
@@ -69,45 +94,10 @@
         .copy-btn:active { opacity: 0.8; transform: scale(0.95); }
         .copy-btn.copied { background: #00b656; }
         .footer { text-align: right; font-size: 11px; color: #bbbfc4; margin-top: 8px; }
-
-        /* 👇👇👇 新增：密码弹窗样式 👇👇👇 */
-        .password-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 1); /* 白色背景遮挡内容 */
-            z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
-            flex-direction: column;
-        }
-        .pwd-box {
-            background: #fff; padding: 30px; border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center; width: 80%; max-width: 300px;
-        }
-        .pwd-input {
-            width: 100%; padding: 10px; margin: 15px 0;
-            border: 1px solid #dee0e3; border-radius: 6px;
-            font-size: 16px; text-align: center; letter-spacing: 2px;
-            box-sizing: border-box; /* 修复宽度溢出 */
-        }
-        .pwd-btn {
-            width: 100%; padding: 10px; background: #3370ff;
-            color: white; border: none; border-radius: 6px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-        }
-        .pwd-hint { font-size: 12px; color: #8f959e; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="passwordOverlay" class="password-overlay">
-        <div class="pwd-box">
-            <h3 style="margin-top:0">🔒 访问受限</h3>
-            <p style="font-size:13px;color:#666">请输入密码刷新数据</p>
-            <input type="tel" id="pwdInput" class="pwd-input" placeholder="输入4位密码" maxlength="4">
-            <button class="pwd-btn" onclick="checkPassword()">解锁 / 更新</button>
-            <div class="pwd-hint">输入正确密码将强制更新数据</div>
-        </div>
-    </div>
     <h2>⚡️ 实时账号池</h2>
     
     <div class="visitor-count">
@@ -137,76 +127,47 @@
         // ===========================================
         // 👇👇👇 配置区域 👇👇👇
         const LOCK_HOURS = 12; // 锁定时间：12小时
-        const CACHE_KEY = 'woko_data_cache_v1';
-        const PASSWORD = '6666'; // 🔑 设置密码
+        const CACHE_KEY = 'woko_data_cache_v1'; // 缓存的钥匙名称
         // ===========================================
 
         const dataUrl = `./data.json?t=${new Date().getTime()}`;
 
-        // 页面加载时，检查是否已经登录过
-        window.onload = function() {
-            // 如果 sessionStorage 里有标记，说明这次会话已经输过密码了，直接加载
-            if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                document.getElementById('passwordOverlay').style.display = 'none';
-                initData(false); // false 代表不强制刷新，走普通逻辑
-            }
-        }
+        // 🚀 核心逻辑：智能加载数据
+        initData();
 
-        // 🔐 密码验证函数
-        function checkPassword() {
-            const input = document.getElementById('pwdInput').value;
-            if (input === PASSWORD) {
-                // 1. 密码正确，隐藏弹窗
-                document.getElementById('passwordOverlay').style.display = 'none';
-                
-                // 2. 记入 Session (关闭浏览器失效)，避免刷新重复输
-                sessionStorage.setItem('isLoggedIn', 'true');
-                
-                // 3. 🔥🔥🔥 核心：清除 12小时锁定的缓存 🔥🔥🔥
-                localStorage.removeItem(CACHE_KEY);
-                console.log("🔑 密码正确，强制清除缓存！");
-
-                // 4. 加载数据 (强制模式)
-                initData(true); 
-            } else {
-                alert('❌ 密码错误，请重试');
-                document.getElementById('pwdInput').value = '';
-            }
-        }
-
-        // 数据加载逻辑
-        function initData(forceUpdate) {
+        function initData() {
             const app = document.getElementById('app');
             const lockTip = document.getElementById('lock-tip');
             const statusTip = document.getElementById('status-tip');
             
-            // 1. 检查本地缓存 (如果 forceUpdate 为 true，则跳过检查直接请求)
+            // 1. 检查是否有本地缓存
             const cachedString = localStorage.getItem(CACHE_KEY);
             
-            if (!forceUpdate && cachedString) {
+            if (cachedString) {
                 const cached = JSON.parse(cachedString);
                 const now = new Date().getTime();
                 const diff = now - cached.timestamp;
                 const lockTime = LOCK_HOURS * 60 * 60 * 1000;
 
-                // 如果缓存没过期
+                // 2. 如果缓存还没过期 (小于12小时)
                 if (diff < lockTime) {
+                    console.log("🔒 命中缓存，使用本地数据，不消耗流量");
                     renderCards(cached.data);
                     
+                    // 计算剩余时间
                     const remaining = lockTime - diff;
                     const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
                     
                     lockTip.style.display = 'block';
                     lockTip.innerHTML = `🔒 数据已锁定 (防刷机制)<br>下次更新：${hours}小时${minutes}分后`;
-                    return; 
+                    return; // ❌ 直接结束，不请求网络
                 }
             }
 
-            // 2. 请求网络 (没缓存，或被密码强制清除了)
-            console.log("🌍 正在请求新数据...");
+            // 3. 如果没有缓存或已过期 -> 请求网络
+            console.log("🌍 缓存过期或不存在，请求新数据...");
             statusTip.style.display = 'block';
-            if(forceUpdate) lockTip.style.display = 'none'; // 强制更新时先隐藏旧提示
             
             fetch(dataUrl)
                 .then(res => {
@@ -219,27 +180,31 @@
                         return;
                     }
 
+                    // 4. 渲染界面
                     renderCards(json.data);
                     statusTip.style.display = 'none';
 
-                    // 写入缓存
-                    const cacheData = { timestamp: new Date().getTime(), data: json.data };
+                    // 5. 🔥 写入缓存 (记下当前时间)
+                    const cacheData = {
+                        timestamp: new Date().getTime(),
+                        data: json.data
+                    };
                     localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
                     
-                    // 显示更新成功
+                    // 显示刚刚更新
                     lockTip.style.display = 'block';
                     lockTip.style.color = '#00b656';
                     lockTip.style.background = '#eafff2';
                     lockTip.style.borderColor = '#b7ebcd';
-                    lockTip.innerHTML = forceUpdate 
-                        ? `✅ 密码验证通过，已强制获取最新数据！` 
-                        : `✅ 数据已更新<br>下次刷新将锁定 ${LOCK_HOURS} 小时`;
+                    lockTip.innerHTML = `✅ 数据已更新<br>下次刷新将锁定 ${LOCK_HOURS} 小时`;
                 })
                 .catch(err => {
+                    console.log("读取失败");
                     statusTip.innerHTML = "数据加载失败，请检查网络";
                 });
         }
 
+        // 渲染卡片的函数 (提取出来了)
         function renderCards(data) {
             const app = document.getElementById('app');
             let html = '';
