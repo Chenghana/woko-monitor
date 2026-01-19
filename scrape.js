@@ -3,18 +3,17 @@ const puppeteer = require('puppeteer-core');
 // 目标网址
 const BASE_URL = 'https://www.woko.pro/h/502/miemie';
 
-// 从环境变量获取 Gist 配置
+// 环境变量
 const GH_TOKEN = process.env.GH_TOKEN;
 const GIST_ID = process.env.GIST_ID;
 
-const randomSleep = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  console.log('🚀 启动 Gist 极速同步爬虫...');
+  console.log('🛡️ 启动 Gist 稳健版爬虫 (重装甲模式)...');
   const startTime = Date.now();
   
-  // 1. 启动浏览器 (优化版配置)
+  // 1. 启动配置：开启图片，窗口最大化，模拟真实用户
   const browser = await puppeteer.launch({
     headless: "new",
     executablePath: '/usr/bin/google-chrome',
@@ -22,8 +21,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
         '--no-sandbox', '--disable-setuid-sandbox',
         '--disable-blink-features=AutomationControlled',
         '--disable-cache', 
-        '--disable-application-cache',
-        '--window-size=1920,1080' // 保持窗口大小，防检测
+        '--window-size=1920,1080', // 🖥️ 大窗口
     ]
   });
 
@@ -31,22 +29,29 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const context = await browser.createIncognitoBrowserContext();
     const page = await context.newPage();
 
-    // 2. 伪装身份
+    // 2. 深度伪装
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
     await page.evaluateOnNewDocument(() => { Object.defineProperty(navigator, 'webdriver', { get: () => false }); });
 
-    // 3. 访问 (带随机参数防缓存)
-    const targetUrl = `${BASE_URL}?v=${Date.now()}`;
-    console.log(`-> 访问: ${targetUrl}`);
-    await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 45000 });
+    // 3. 访问页面
+    const targetUrl = `${BASE_URL}?v=${Date.now()}`; // 随机参数
+    console.log(`-> 正在访问: ${targetUrl}`);
+    
+    // ⚠️ 改用 networkidle0：必须等网络几乎完全静止才算加载完 (应对高延迟)
+    await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 60000 });
 
-    // 4. 模拟滚动
+    // 4. 模拟真人操作 (很重要！)
+    console.log('-> 模拟真人浏览中...');
     try {
-        await page.mouse.wheel({ deltaY: 500 });
+        await page.mouse.move(100, 100);
+        await sleep(1000);
+        await page.mouse.wheel({ deltaY: 800 }); // 滚下去
         await sleep(2000);
+        await page.mouse.wheel({ deltaY: -300 }); // 滚上来
+        await sleep(1000);
     } catch (e) {}
 
-    // 5. 提取数据 (带重试机制)
+    // 5. 数据提取函数
     const extractData = () => {
         const cards = document.querySelectorAll('.bg-white.rounded-2xl, .card');
         const data = [];
@@ -83,34 +88,40 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
         return data;
     };
 
+    // 第一次尝试
     let accounts = await page.evaluate(extractData);
 
-    // 如果没抓到，重试一次
+    // 6. 重试机制：如果没有数据，死等 8 秒再试一次
     if (accounts.length === 0) {
-        console.log("⚠️ 第一次未抓到，等待 5s 重试...");
-        await sleep(5000);
+        console.log("⚠️ 第一次抓取为空，等待 8秒 重新扫描...");
+        await sleep(8000);
         accounts = await page.evaluate(extractData);
     }
 
-    console.log(`📊 抓取到 ${accounts.length} 条数据 | 耗时 ${(Date.now() - startTime)/1000}s`);
+    console.log(`📊 最终抓取: ${accounts.length} 条数据`);
 
-    // 6. 核心：直接更新 Gist (秒级同步)
-    if (accounts.length > 0 && GH_TOKEN && GIST_ID) {
-        console.log("☁️ 正在上传到 Gist...");
-        await updateGist(GH_TOKEN, GIST_ID, accounts);
+    // 7. 同步到 Gist
+    if (accounts.length > 0) {
+        if(GH_TOKEN && GIST_ID) {
+            console.log("☁️ 正在同步到 Gist...");
+            await updateGist(GH_TOKEN, GIST_ID, accounts);
+        } else {
+            console.error("❌ 缺少 Secrets 配置 (GH_TOKEN 或 GIST_ID)");
+        }
     } else {
-        console.log("❌ 跳过上传：数据为空 或 缺少 Gist 配置");
-        if (accounts.length === 0) process.exit(0); // 即使没数据也不报错，保持循环
+        console.log("❌ 两次尝试均未找到数据，跳过 Gist 更新 (保护旧数据)");
+        // 打印标题帮助调试
+        const title = await page.title();
+        console.log(`当前页面标题: ${title}`);
     }
 
   } catch (error) {
-    console.error('❌ 错误:', error.message);
+    console.error('❌ 运行错误:', error.message);
   } finally {
     await browser.close();
   }
 })();
 
-// Gist API 更新函数
 async function updateGist(token, gistId, data) {
     try {
         const content = JSON.stringify({
@@ -125,16 +136,16 @@ async function updateGist(token, gistId, data) {
                 'Content-Type': 'application/json',
                 'User-Agent': 'Node.js Script'
             },
-            body: JSON.stringify({
-                files: {
-                    "data.json": { content: content }
-                }
-            })
+            body: JSON.stringify({ files: { "data.json": { content: content } } })
         });
 
-        if (res.ok) console.log('✅ Gist 同步成功！网页已更新。');
-        else console.error('❌ Gist 同步失败:', res.statusText);
+        if (res.ok) console.log('✅ Gist 同步成功！');
+        else {
+            console.error('❌ Gist 同步失败:', res.status, res.statusText);
+            const errText = await res.text();
+            console.error('错误详情:', errText);
+        }
     } catch (e) {
-        console.error('❌ Gist 网络错误:', e.message);
+        console.error('❌ 网络请求异常:', e.message);
     }
 }
