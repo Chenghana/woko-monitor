@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Appleid分享</title>
+    <title>账号监控池</title>
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     <style>
         /* 📱 基础样式 */
@@ -28,19 +28,7 @@
             gap: 15px;
         }
         .visitor-count span { font-family: monospace; font-weight: bold; color: #3370ff; }
-        
-        /* 👇👇👇 新增：倒计时提示条样式 👇👇👇 */
-        .lock-tip { 
-            text-align: center; 
-            font-size: 12px; 
-            color: #d0021b; /* 红色 */
-            margin-bottom: 15px;
-            background: #fff0f0;
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #ffdbdb;
-            display: none; /* 默认隐藏 */
-        }
+        .refresh-tip { text-align: center; font-size: 12px; color: #8f959e; margin-bottom: 15px; }
 
         .tutorial-section {
             background: #fff;
@@ -59,27 +47,31 @@
             text-align: center;
         }
 
+        /* 👇👇👇 修改点：图片并排容器 👇👇👇 */
         .image-row {
-            display: flex;            
-            justify-content: center;  
-            align-items: center;      
-            gap: 10px;                
+            display: flex;            /* 弹性布局 */
+            justify-content: center;  /* 水平居中 */
+            align-items: center;      /* 垂直对齐 */
+            gap: 10px;                /* 图片间距 */
         }
 
+        /* 👇👇👇 修改点：图片样式 👇👇👇 */
         .side-by-side-img {
-            width: 48%;               
-            height: auto;             
+            width: 48%;               /* 两个约占一半，留点缝隙 */
+            height: auto;             /* 高度自适应 */
             border-radius: 6px;
             border: 1px solid #eee;
-            cursor: zoom-in;          
-            object-fit: cover;        
+            cursor: zoom-in;          /* 放大镜光标 */
+            object-fit: cover;        /* 保持比例填充 */
         }
 
+        /* 放大查看器 */
         .image-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; animation: fadeIn 0.2s; }
         .modal-content { margin: auto; display: block; max-width: 95%; max-height: 95%; border-radius: 5px; }
         .modal-tip { position: absolute; bottom: 20px; color: #fff; font-size: 14px; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
         @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
 
+        /* 卡片样式 */
         .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); border: 1px solid #dee0e3; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #eff0f1; }
         .region-badge { font-weight: 700; font-size: 16px; display: flex; align-items: center; }
@@ -98,24 +90,23 @@
 </head>
 <body>
 
-    <h2>永久独享加 han91918888</h2>
+    <h2>⚡️ 实时账号池</h2>
     
     <div class="visitor-count">
         <span id="busuanzi_container_site_uv" style="display:none">👤 访客: <span id="busuanzi_value_site_uv">--</span></span>
         <span id="busuanzi_container_site_pv" style="display:none">👁️ 浏览: <span id="busuanzi_value_site_pv">--</span></span>
     </div>
 
-    <div class="lock-tip" id="lock-tip"></div>
-    <div class="refresh-tip" id="status-tip" style="display:none">正在获取最新数据...</div>
+    <div class="refresh-tip" id="status-tip">正在获取最新数据...</div>
 
     <div class="tutorial-section">
         <div class="tutorial-title">⚠️ 使用前必看 (点击图片放大)</div>
+        
         <div class="image-row">
             <img src="./warning.png" class="side-by-side-img" onclick="openModal(this)" alt="警告">
             <img src="./guide.jpg" class="side-by-side-img" onclick="openModal(this)" alt="教程">
         </div>
     </div>
-
     <div id="app"></div>
 
     <div id="imageModal" class="image-modal" onclick="closeModal()">
@@ -125,116 +116,59 @@
 
     <script>
         // ===========================================
-        // 👇👇👇 配置区域 👇👇👇
-        const LOCK_HOURS = 12; // 锁定时间：12小时
-        const CACHE_KEY = 'woko_data_cache_v1'; // 缓存的钥匙名称
+        // 👇👇👇 请确认这里的用户名是否正确 👇👇👇
+        const GITHUB_USERNAME = 'ChengHana';  
+        const REPO_NAME = 'woko-monitor'; 
         // ===========================================
 
         const dataUrl = `./data.json?t=${new Date().getTime()}`;
 
-        // 🚀 核心逻辑：智能加载数据
-        initData();
-
-        function initData() {
-            const app = document.getElementById('app');
-            const lockTip = document.getElementById('lock-tip');
-            const statusTip = document.getElementById('status-tip');
-            
-            // 1. 检查是否有本地缓存
-            const cachedString = localStorage.getItem(CACHE_KEY);
-            
-            if (cachedString) {
-                const cached = JSON.parse(cachedString);
-                const now = new Date().getTime();
-                const diff = now - cached.timestamp;
-                const lockTime = LOCK_HOURS * 60 * 60 * 1000;
-
-                // 2. 如果缓存还没过期 (小于12小时)
-                if (diff < lockTime) {
-                    console.log("🔒 命中缓存，使用本地数据，不消耗流量");
-                    renderCards(cached.data);
-                    
-                    // 计算剩余时间
-                    const remaining = lockTime - diff;
-                    const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                    
-                    lockTip.style.display = 'block';
-                    lockTip.innerHTML = `🔒 数据已锁定 (防刷机制)<br>下次更新：${hours}小时${minutes}分后`;
-                    return; // ❌ 直接结束，不请求网络
+        fetch(dataUrl)
+            .then(res => {
+                if (!res.ok) throw new Error("连接数据源中...");
+                return res.json();
+            })
+            .then(json => {
+                const app = document.getElementById('app');
+                const tip = document.getElementById('status-tip');
+                
+                if (!json.data || json.data.length === 0) {
+                    app.innerHTML = '<div style="text-align:center;padding:20px;color:#999">暂无可用数据</div>';
+                    return;
                 }
-            }
 
-            // 3. 如果没有缓存或已过期 -> 请求网络
-            console.log("🌍 缓存过期或不存在，请求新数据...");
-            statusTip.style.display = 'block';
-            
-            fetch(dataUrl)
-                .then(res => {
-                    if (!res.ok) throw new Error("连接数据源中...");
-                    return res.json();
-                })
-                .then(json => {
-                    if (!json.data || json.data.length === 0) {
-                        app.innerHTML = '<div style="text-align:center;padding:20px;color:#999">暂无可用数据</div>';
-                        return;
-                    }
+                const updateTime = json.updated_at ? new Date(json.updated_at).toLocaleString() : '刚刚';
+                tip.innerHTML = `最后更新: ${updateTime} · 共 ${json.data.length} 个账号`;
 
-                    // 4. 渲染界面
-                    renderCards(json.data);
-                    statusTip.style.display = 'none';
-
-                    // 5. 🔥 写入缓存 (记下当前时间)
-                    const cacheData = {
-                        timestamp: new Date().getTime(),
-                        data: json.data
-                    };
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-                    
-                    // 显示刚刚更新
-                    lockTip.style.display = 'block';
-                    lockTip.style.color = '#00b656';
-                    lockTip.style.background = '#eafff2';
-                    lockTip.style.borderColor = '#b7ebcd';
-                    lockTip.innerHTML = `✅ 数据已更新<br>下次刷新将锁定 ${LOCK_HOURS} 小时`;
-                })
-                .catch(err => {
-                    console.log("读取失败");
-                    statusTip.innerHTML = "数据加载失败，请检查网络";
+                let html = '';
+                json.data.forEach((item) => {
+                    html += `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="region-badge">${item.region || '未知区域'}</div>
+                                <div class="status-badge">● ${item.status}</div>
+                            </div>
+                            <div class="row">
+                                <div class="label">账号</div>
+                                <div class="value-box">
+                                    <div class="value-text">${item.username}</div>
+                                    <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="label">密码</div>
+                                <div class="value-box">
+                                    <div class="value-text">${item.password}</div>
+                                    <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
+                                </div>
+                            </div>
+                            <div class="footer">Check: ${item.checkTime ? item.checkTime.split(' ')[1] : ''}</div>
+                        </div>
+                    `;
                 });
-        }
-
-        // 渲染卡片的函数 (提取出来了)
-        function renderCards(data) {
-            const app = document.getElementById('app');
-            let html = '';
-            data.forEach((item) => {
-                html += `
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="region-badge">${item.region || '未知区域'}</div>
-                            <div class="status-badge">● ${item.status}</div>
-                        </div>
-                        <div class="row">
-                            <div class="label">账号</div>
-                            <div class="value-box">
-                                <div class="value-text">${item.username}</div>
-                                <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="label">密码</div>
-                            <div class="value-box">
-                                <div class="value-text">${item.password}</div>
-                                <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
-                            </div>
-                        </div>
-                        <div class="footer">Check: ${item.checkTime ? item.checkTime.split(' ')[1] : ''}</div>
-                    </div>
-                `;
-            });
-            app.innerHTML = html;
-        }
+                app.innerHTML = html;
+            })
+            .catch(err => { console.log("本地读取失败"); });
 
         function copyText(btn, text) {
             const textarea = document.createElement('textarea');
