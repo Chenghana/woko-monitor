@@ -1,0 +1,22 @@
+name: Hourly Global Cleanup
+
+on:
+  schedule:
+    - cron: '0 * * * *' # ⏰ 每小时的第0分钟执行一次
+  workflow_dispatch:    # 👆 允许手动点击运行
+
+jobs:
+  cleanup_old_runs:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Delete Old Workflow Runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0       # 🗓️ 不保留任何天数的历史 (只看数量)
+          keep_minimum_runs: 5 # 🔢 核心设置：只保留最后 2 个成功的/失败的记录
+          # delete_workflow_pattern: "" # 留空代表清理所有类型的工作流
