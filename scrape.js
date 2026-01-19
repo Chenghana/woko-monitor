@@ -1,200 +1,130 @@
 const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 
-const TARGET_URL = 'https://www.woko.pro/h/502/miemie';
+// 目标网址
+const BASE_URL = 'https://www.woko.pro/h/502/miemie';
 
-// 环境变量
-const APP_ID = process.env.FEISHU_APP_ID;
-const APP_SECRET = process.env.FEISHU_APP_SECRET;
-const SHEET_TOKEN = process.env.FEISHU_SHEET_TOKEN;
+// 随机延迟工具
+const randomSleep = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  console.log('1. 🚀 任务启动...');
+  console.log('🔥 启动爬虫任务 (纯净版)...');
   
-  // 1. 飞书鉴权
-  let accessToken = "";
-  if (APP_ID && APP_SECRET && SHEET_TOKEN) {
-      try {
-          const tokenRes = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ "app_id": APP_ID, "app_secret": APP_SECRET })
-          });
-          const tokenJson = await tokenRes.json();
-          if (tokenJson.code !== 0) throw new Error(`飞书鉴权失败: ${tokenJson.msg}`);
-          accessToken = tokenJson.tenant_access_token;
-          console.log('   ✅ 飞书连接成功！');
-      } catch (e) {
-          console.error('   ❌ 飞书配置错误:', e.message);
-          process.exit(1); 
-      }
-  }
-
-  // 2. 启动浏览器
   const browser = await puppeteer.launch({
     headless: "new",
     executablePath: '/usr/bin/google-chrome',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        // 隐藏自动化特征
+        '--disable-blink-features=AutomationControlled', 
+        // 禁止缓存
+        '--disable-cache',
+        '--disable-application-cache',
+    ]
   });
 
   try {
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1920, height: 1080 });
-    // 伪装 User-Agent 防止被拦截
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    // 使用无痕模式
+    const context = await browser.createIncognitoBrowserContext();
+    const page = await context.newPage();
 
-    console.log('2. 正在打开网页...');
-    await page.goto(TARGET_URL, { waitUntil: 'networkidle0', timeout: 60000 });
-    await new Promise(r => setTimeout(r, 4000));
+    // 伪装 User-Agent
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
-    // ===============================================
-    // 👇 核心修复：基于 Label 定位，彻底解决颠倒问题
-    // ===============================================
+    // 注入 JS 隐藏身份
+    await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    });
+
+    // 🚀 URL后加随机时间戳，强制服务器返回最新数据
+    const targetUrl = `${BASE_URL}?force_update=${Date.now()}`;
+    console.log(`-> 正在访问: ${targetUrl}`);
+
+    // 设置超时
+    await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 90000 });
+
+    // 模拟人类操作
+    await sleep(2000);
+    try {
+        await page.mouse.move(randomSleep(100, 800), randomSleep(100, 600));
+        await page.mouse.wheel({ deltaY: 300 });
+        await sleep(1000);
+    } catch (e) {}
+
+    // 等待数据加载
+    console.log('-> 等待数据加载...');
+    try {
+        await page.waitForSelector('.bg-white.rounded-2xl', { timeout: 20000 });
+    } catch (e) {
+        console.warn("⚠️ 警告：未找到数据卡片，可能是被拦截或页面为空。");
+    }
+
+    // 提取数据
     const accounts = await page.evaluate(() => {
         const results = [];
         const processedUsers = new Set();
-
-        // 1. 不再遍历 input，而是直接找“卡片”容器
-        // 根据截图，卡片是 bg-white rounded-2xl 样式的 div
         const cards = document.querySelectorAll('.bg-white.rounded-2xl, .card');
-
+        
         cards.forEach(card => {
-            let username = "";
-            let password = "";
-            let region = "未知";
-            let status = "正常";
-
-            // --- A. 精准提取账号和密码 ---
-            // 遍历卡片里的所有 label 标签
-            const labels = card.querySelectorAll('label');
-            labels.forEach(label => {
-                const labelText = label.innerText.trim();
-                
-                // 找到 label 对应的父级容器，再找里面的 input
-                // 结构通常是: div > label + div > input
+            let username = "", password = "", region = "未知", status = "正常";
+            
+            // 提取账号密码
+            card.querySelectorAll('label').forEach(label => {
                 const container = label.parentElement; 
                 if (container) {
                     const input = container.querySelector('input');
                     if (input) {
-                        if (labelText.includes("账号")) {
-                            username = input.value;
-                        } else if (labelText.includes("密码")) {
-                            password = input.value;
-                        }
+                        if (label.innerText.includes("账号")) username = input.value;
+                        else if (label.innerText.includes("密码")) password = input.value;
                     }
                 }
             });
 
-            // 只有当账号和密码都找到了，才处理 (避免无效卡片)
             if (username && password && !processedUsers.has(username)) {
-                
-                // --- B. 提取地区和状态 (沿用之前的精准逻辑) ---
+                // 提取地区和状态
                 const header = card.querySelector('.flex.justify-between') || card.firstElementChild;
                 if (header) {
-                    // 找状态
                     const statusEl = header.querySelector('.text-emerald-700') || Array.from(header.querySelectorAll('div,span')).find(el => el.innerText.includes('正常'));
                     if (statusEl) status = statusEl.innerText.trim();
                     
-                    // 找地区 (粗体字)
                     const regionSpan = header.querySelector('span.font-bold');
-                    if (regionSpan) {
-                        region = regionSpan.innerText.trim();
-                    } else {
-                        // 备选：找左侧容器
+                    if (regionSpan) region = regionSpan.innerText.trim();
+                    else {
                         const leftSide = header.querySelector('.flex.gap-2');
                         if (leftSide) region = leftSide.innerText.trim().split(/\s+/).pop();
                     }
                 }
-
-                // 兜底：如果地区没找到，用暴力文本法
                 if(region === "未知" && card.innerText.includes("账号")) {
-                     const rawText = card.innerText.split("账号")[0];
-                     region = rawText.replace(/正常|异常|封禁|●/g, "").trim().split(/\s+/).pop();
+                    region = card.innerText.split("账号")[0].replace(/正常|异常|封禁|●/g, "").trim().split(/\s+/).pop();
                 }
 
                 results.push({ region, status, username, password });
                 processedUsers.add(username);
             }
         });
-
         return results;
     });
 
-    console.log(`3. 抓取完成，共 ${accounts.length} 条数据。`);
-    
-    fs.writeFileSync('data.json', JSON.stringify({ updated_at: new Date().getTime(), data: accounts }, null, 2));
+    console.log(`🎉 抓取完成：共找到 ${accounts.length} 条数据。`);
 
-    if (accessToken && accounts.length > 0) {
-        await syncToFeishu(accessToken, accounts);
+    // 保存文件
+    if (accounts.length > 0) {
+        fs.writeFileSync('data.json', JSON.stringify({ 
+            updated_at: new Date().getTime(), 
+            data: accounts 
+        }, null, 2));
+        console.log("✅ data.json 已更新");
+    } else {
+        console.log("❌ 本次没有抓到数据，跳过文件写入。");
+        process.exit(1); // 报错，让 Actions 显示红叉
     }
 
   } catch (error) {
-    console.error('❌ 出错:', error);
+    console.error('❌ 发生严重错误:', error);
     process.exit(1);
   } finally {
     await browser.close();
   }
 })();
-
-// === 飞书同步函数 (ID写入 + 自动表头) ===
-async function syncToFeishu(accessToken, data) {
-    try {
-        console.log('4. 正在查询表格信息...');
-        
-        const metaRes = await fetch(`https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${SHEET_TOKEN}/sheets/query`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-        const metaJson = await metaRes.json();
-        if (metaJson.code !== 0) throw new Error(`查询表格失败: ${JSON.stringify(metaJson)}`);
-
-        // 获取真实的 sheet_id
-        const firstSheet = metaJson.data.sheets[0];
-        const realSheetId = firstSheet.sheet_id;
-
-        // 1. 定义固定表头
-        const header = ["地区", "状态", "账号", "密码", "更新时间"];
-        
-        // 2. 映射数据 (确保顺序绝对正确)
-        const checkTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-        const dataRows = data.map(item => [
-            item.region,   // A列
-            item.status,   // B列
-            item.username, // C列
-            item.password, // D列
-            checkTime      // E列
-        ]);
-
-        // 3. 合并表头 + 数据
-        const allValues = [header, ...dataRows];
-
-        // 4. 填充空行清理旧数据
-        while (allValues.length < 50) allValues.push(["", "", "", "", ""]);
-
-        // 5. 写入
-        const range = `${realSheetId}!A1:E${allValues.length}`;
-        console.log(`   -> 正在写入 (Range: ${range})...`);
-
-        const writeRes = await fetch(`https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/${SHEET_TOKEN}/values`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "valueRange": {
-                    "range": range,
-                    "values": allValues
-                }
-            })
-        });
-
-        const writeJson = await writeRes.json();
-        if (writeJson.code !== 0) throw new Error(`写入失败: ${JSON.stringify(writeJson)}`);
-        
-        console.log('🎉 成功！数据顺序已修复！');
-
-    } catch (e) {
-        console.error('❌ 飞书同步失败:', e.message);
-    }
-}
