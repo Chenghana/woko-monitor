@@ -1,4 +1,4 @@
-name: 2-Minute Update (Debug)
+name: Robust Monitor (Loop)
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  high_freq_scrape:
+  scrape_and_commit:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,35 +30,29 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       # ==========================================================
-      # 🔄 循环运行 (带详细日志)
+      # 🔄 循环运行 (即使出错也继续)
       # ==========================================================
       - name: Loop Scrape
+        continue-on-error: true # 👈 关键：允许出错继续
         run: |
           for i in {1..3}; do
             echo "----------------------------------------"
-            echo "🚀 Starting Run #$i"
-            echo "----------------------------------------"
+            echo "🚀 Run #$i"
             
-            # 1. 运行爬虫
+            # 运行爬虫
             node scrape.js
             
-            # 2. 检查文件状态 (调试用)
-            echo "📂 Git Status Check:"
-            git status
-            
-            # 3. 提交代码
+            # 提交代码 (如果有变化)
             git add data.json
-            
-            # 4. 尝试提交，如果成功则推送
             if git commit -m "Auto update (Run $i)"; then
-              echo "✅ Commit success, pushing..."
-              git pull --rebase # 防止冲突
-              git push
+               git pull --rebase
+               git push
+               echo "✅ Changes pushed"
             else
-              echo "⚠️ Nothing to commit (File unchanged?)"
+               echo "⚠️ No changes to commit"
             fi
             
-            # 5. 休息
+            # 休息
             if [ $i -lt 3 ]; then
               echo "💤 Sleeping 100s..."
               sleep 100
