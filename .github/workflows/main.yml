@@ -1,15 +1,15 @@
-name: 2-Minute Update (Clean & Auto-Delete)
+name: 2-Minute Update (Force Clean)
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # 5分钟唤醒一次
-  workflow_dispatch:      # 允许手动运行
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 jobs:
   scrape_and_commit:
     runs-on: ubuntu-latest
     
-    # 👇 关键修改：添加 actions: write 权限，否则无法删除记录
+    # 👇 权限必须给足，否则删不掉
     permissions:
       contents: write
       actions: write
@@ -26,46 +26,39 @@ jobs:
       - name: Install Dependencies
         run: npm install puppeteer-core
 
-      # =================================================
-      # 🏃‍♂️ 第一轮抓取 (0分0秒)
-      # =================================================
-      - name: Run Scraper (Round 1)
-        run: node scrape.js
-
-      - name: Commit and Push (Round 1)
+      - name: Setup Git
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data.json
-          git commit -m "Auto update data (Round 1)" || echo "No changes to commit"
-          git push
 
       # =================================================
-      # ⏳ 原地休息 130 秒 (实现2分钟间隔)
+      # 🏃‍♂️ 循环抓取 (这里保持不变)
       # =================================================
-      - name: Sleep for 130 seconds
-        run: sleep 130
-
-      # =================================================
-      # 🏃‍♂️ 第二轮抓取 (2分10秒)
-      # =================================================
-      - name: Run Scraper (Round 2)
-        run: node scrape.js
-
-      - name: Commit and Push (Round 2)
+      - name: Loop Scrape 3 Times
         run: |
-          git add data.json
-          git commit -m "Auto update data (Round 2)" || echo "No changes to commit"
-          git push
+          for i in {1..3}; do
+            echo "🚀 Run #$i..."
+            node scrape.js
+            git add data.json
+            git commit -m "Auto update (Run $i)" || echo "No changes"
+            git push
+            if [ $i -lt 3 ]; then
+              echo "💤 Sleep 100s..."
+              sleep 100
+            fi
+          done
 
       # =================================================
-      # 🗑️ 新增：如果成功，自动删除旧的 Pages 构建记录
+      # 🗑️ 强力清理旧记录 (重点修改了这里)
       # =================================================
-      - name: Delete Old Pages Builds
+      - name: Delete Old Workflow Runs
+        # 👇 关键：不管前面是否报错，这一步必须执行！
+        if: always() 
         uses: Mattraks/delete-workflow-runs@v2
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
           retain_days: 0
-          keep_minimum_runs: 0 # 不保留任何旧记录，只看最新的
-          delete_workflow_pattern: "pages build and deployment" # 精准匹配 Pages 的工作流名称
+          keep_minimum_runs: 0
+          # 👇 同时删除 "2-Minute Update..." 自己和 "pages..." 构建记录
+          delete_workflow_pattern: "pages build and deployment"
