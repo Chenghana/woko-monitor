@@ -1,16 +1,19 @@
-name: Run Scraper
+name: 2-Minute Update (Clean & Auto-Delete)
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # 每5分钟尝试执行一次
-  workflow_dispatch: # 允许手动点击按钮测试
-
-permissions:
-  contents: write
+    - cron: '*/5 * * * *' # 5分钟唤醒一次
+  workflow_dispatch:      # 允许手动运行
 
 jobs:
-  scrape-and-commit:
+  scrape_and_commit:
     runs-on: ubuntu-latest
+    
+    # 👇 关键修改：添加 actions: write 权限，否则无法删除记录
+    permissions:
+      contents: write
+      actions: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,28 +21,51 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '18'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Dependencies
+        run: npm install puppeteer-core
 
-      - name: Run Scraper
-        # 👇 修正重点：env 必须放在具体的 step 下面，缩进要对齐
-        env: 
-          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
-          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
-          FEISHU_SHEET_TOKEN: ${{ secrets.FEISHU_SHEET_TOKEN }}
+      # =================================================
+      # 🏃‍♂️ 第一轮抓取 (0分0秒)
+      # =================================================
+      - name: Run Scraper (Round 1)
         run: node scrape.js
 
-      - name: Commit and push
+      - name: Commit and Push (Round 1)
         run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
-          # 检查是否有变化
-          if [[ -n $(git status -s data.json) ]]; then
-            git add data.json
-            git commit -m "Auto update data: $(date)"
-            git push
-          else
-            echo "No changes found, skipping commit."
-          fi
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data.json
+          git commit -m "Auto update data (Round 1)" || echo "No changes to commit"
+          git push
+
+      # =================================================
+      # ⏳ 原地休息 130 秒 (实现2分钟间隔)
+      # =================================================
+      - name: Sleep for 130 seconds
+        run: sleep 130
+
+      # =================================================
+      # 🏃‍♂️ 第二轮抓取 (2分10秒)
+      # =================================================
+      - name: Run Scraper (Round 2)
+        run: node scrape.js
+
+      - name: Commit and Push (Round 2)
+        run: |
+          git add data.json
+          git commit -m "Auto update data (Round 2)" || echo "No changes to commit"
+          git push
+
+      # =================================================
+      # 🗑️ 新增：如果成功，自动删除旧的 Pages 构建记录
+      # =================================================
+      - name: Delete Old Pages Builds
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 0 # 不保留任何旧记录，只看最新的
+          delete_workflow_pattern: "pages build and deployment" # 精准匹配 Pages 的工作流名称
