@@ -1,4 +1,4 @@
-name: Robust Monitor (Loop)
+name: Realtime Monitor (Loop + Gist)
 
 on:
   schedule:
@@ -6,12 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  scrape_and_commit:
+  scrape_loop:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,45 +21,33 @@ jobs:
       - name: Install Deps
         run: npm install puppeteer-core
 
-      - name: Setup Git
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
       # ==========================================================
-      # 🔄 循环运行 (即使出错也继续)
+      # 🔄 循环 3 次，每次都把最新的数据推送到 Gist
       # ==========================================================
-      - name: Loop Scrape
-        continue-on-error: true # 👈 关键：允许出错继续
+      - name: Loop Scrape (Update Gist)
+        # 👇 关键：把 Secrets 传给脚本
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GIST_ID: ${{ secrets.GIST_ID }}
         run: |
           for i in {1..3}; do
             echo "----------------------------------------"
-            echo "🚀 Run #$i"
+            echo "🚀 Run #$i Start"
             
-            # 运行爬虫
+            # 运行脚本 (脚本里会自动上传 Gist)
             node scrape.js
             
-            # 提交代码 (如果有变化)
-            git add data.json
-            if git commit -m "Auto update (Run $i)"; then
-               git pull --rebase
-               git push
-               echo "✅ Changes pushed"
-            else
-               echo "⚠️ No changes to commit"
-            fi
-            
-            # 休息
+            # 休息 80 秒 (留出时间给下一次)
             if [ $i -lt 3 ]; then
-              echo "💤 Sleeping 100s..."
-              sleep 100
+              echo "💤 Sleeping 80s..."
+              sleep 80
             fi
           done
 
       # ==========================================================
-      # 🧹 清理日志
+      # 🧹 清理日志 (保持后台干净)
       # ==========================================================
-      - name: Cleanup
+      - name: Cleanup Logs
         if: always()
         uses: Mattraks/delete-workflow-runs@v2
         with:
