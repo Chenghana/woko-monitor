@@ -21,7 +21,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
         '--no-sandbox', '--disable-setuid-sandbox',
         '--disable-blink-features=AutomationControlled',
         '--disable-cache', 
-        '--window-size=1920,1080', // 🖥️ 大窗口
+        '--window-size=1920,1080', // 🖥️ 大窗口，防检测
     ]
   });
 
@@ -33,14 +33,14 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
     await page.evaluateOnNewDocument(() => { Object.defineProperty(navigator, 'webdriver', { get: () => false }); });
 
-    // 3. 访问页面
-    const targetUrl = `${BASE_URL}?v=${Date.now()}`; // 随机参数
+    // 3. 访问页面 (随机参数)
+    const targetUrl = `${BASE_URL}?v=${Date.now()}`; 
     console.log(`-> 正在访问: ${targetUrl}`);
     
-    // ⚠️ 改用 networkidle0：必须等网络几乎完全静止才算加载完 (应对高延迟)
-    await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 60000 });
+    // ⚠️ 改用 networkidle2：等待网络稍微空闲 (比 networkidle0 快，比 domcontentloaded 稳)
+    await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 60000 });
 
-    // 4. 模拟真人操作 (很重要！)
+    // 4. 模拟真人操作 (很重要！触发懒加载和绕过检测)
     console.log('-> 模拟真人浏览中...');
     try {
         await page.mouse.move(100, 100);
