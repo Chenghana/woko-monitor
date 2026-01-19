@@ -1,65 +1,75 @@
-name: High Frequency Monitor (Loop)
+name: 2-Minute Update (Debug)
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # GitHub 限制最小5分钟
-  workflow_dispatch:      # 允许手动触发
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 jobs:
   high_freq_scrape:
     runs-on: ubuntu-latest
-    
-    # 👇 必须给写权限，否则无法提交代码和删除日志
     permissions:
       contents: write
       actions: write
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Install Dependencies
+      - name: Install Deps
         run: npm install puppeteer-core
 
-      - name: Setup Git Config
+      - name: Setup Git
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       # ==========================================================
-      # 🔥 核心逻辑：循环运行 3 次
-      # 0s (Run 1) -> 100s (Run 2) -> 200s (Run 3)
+      # 🔄 循环运行 (带详细日志)
       # ==========================================================
-      - name: Loop Scrape 3 Times
+      - name: Loop Scrape
         run: |
           for i in {1..3}; do
-            echo "🚀 Starting Run #$i..."
+            echo "----------------------------------------"
+            echo "🚀 Starting Run #$i"
+            echo "----------------------------------------"
             
             # 1. 运行爬虫
             node scrape.js
             
-            # 2. 提交代码 (如果有变化)
-            git add data.json
-            git commit -m "Auto update (Run $i)" || echo "No changes to commit"
-            git push
+            # 2. 检查文件状态 (调试用)
+            echo "📂 Git Status Check:"
+            git status
             
-            # 3. 如果不是最后一次，就休息 100 秒 (约1分半)
+            # 3. 提交代码
+            git add data.json
+            
+            # 4. 尝试提交，如果成功则推送
+            if git commit -m "Auto update (Run $i)"; then
+              echo "✅ Commit success, pushing..."
+              git pull --rebase # 防止冲突
+              git push
+            else
+              echo "⚠️ Nothing to commit (File unchanged?)"
+            fi
+            
+            # 5. 休息
             if [ $i -lt 3 ]; then
-              echo "💤 Sleeping for 100 seconds..."
+              echo "💤 Sleeping 100s..."
               sleep 100
             fi
           done
 
       # ==========================================================
-      # 🧹 清理旧记录：防止 Actions 页面被刷屏
+      # 🧹 清理日志
       # ==========================================================
-      - name: Delete Old Pages Builds
-        if: always() # 无论前面是否成功，都尝试清理
+      - name: Cleanup
+        if: always()
         uses: Mattraks/delete-workflow-runs@v2
         with:
           token: ${{ github.token }}
