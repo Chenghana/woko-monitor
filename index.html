@@ -1,9 +1,23 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <script>
-  if (window.location.hostname === 'appleid-c4r.pages.dev') {
-    window.location.href = 'https://id.319131.xyz'; // 自动跳走
-  }
+    // 🚪 门卫逻辑：检测当前访问的是不是旧域名
+    if (window.location.hostname === 'appleid-c4r.pages.dev') {
+        // 🛑 如果是旧域名，直接摧毁页面内容，显示报错
+        document.documentElement.innerHTML = `
+            <html>
+            <head><title>403 Forbidden</title></head>
+            <body style="text-align:center; padding-top:100px; font-family:sans-serif;">
+                <h1>403 Forbidden</h1>
+                <hr style="width:60%">
+                <p>Login Failed: You do not have permission to access.</p>
+            </body>
+            </html>
+        `;
+        // ⛔️ 强制停止后续所有代码的加载（防止真实数据泄露）
+        throw new Error("Access Denied by Domain Policy");
+    }
+    // ✅ 如果是 id.319131.xyz，代码会忽略上面这段，继续向下加载正常内容
 </script>
 <head>
     <meta charset="UTF-8">
