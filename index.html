@@ -9,7 +9,6 @@
 
     <script>
         var currentHost = window.location.hostname;
-        // 🚨 拦截逻辑
         if (currentHost.includes('pages.dev') || currentHost === 'appleid-c4r.pages.dev') {
             if (window.stop) window.stop();
             document.open();
@@ -24,7 +23,6 @@
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     
     <style>
-        /* 🎨 全局变量 */
         :root {
             --primary-color: #0071e3;
             --success-color: #34c759;
@@ -35,14 +33,13 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            font-family: sans-serif; /* 安卓最喜欢的通用字体 */
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
             padding: 20px 16px;
         }
 
-        /* 📱 响应式容器：大屏宽，小屏窄 */
         .container { max-width: 1200px; margin: 0 auto; }
         .header-section { max-width: 700px; margin: 0 auto 30px auto; }
 
@@ -63,16 +60,14 @@
         }
         .contact-link { font-size: 14px; color: var(--primary-color); text-decoration: none; font-weight: 600; }
 
-        /* 📱 卡片网格系统 */
+        /* 布局保持自适应 */
         #app { display: grid; gap: 20px; grid-template-columns: 1fr; }
         @media (min-width: 768px) { #app { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } body { padding: 40px; } }
 
         .card {
             background: var(--card-bg); border-radius: 18px; padding: 24px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            transition: transform 0.2s;
         }
-        @media (hover: hover) { .card:hover { transform: translateY(-4px); } }
 
         .card-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #f0f0f5; padding-bottom: 15px; }
         .region-tag { background: #e3f2fd; color: #007aff; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 700; }
@@ -83,13 +78,12 @@
         
         .input-group {
             display: flex; background: #f2f2f7; border-radius: 12px; padding: 5px;
-            border: 1px solid transparent; transition: all 0.2s;
+            border: 1px solid transparent; 
         }
-        .input-group:focus-within { background: #fff; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,113,227,0.15); }
         
         .data-text {
             flex: 1; border: none; background: transparent; padding: 10px;
-            font-family: "SF Mono", Menlo, monospace; font-size: 15px; color: #333;
+            font-family: monospace; font-size: 15px; color: #333;
             outline: none; width: 100%;
         }
         
@@ -224,44 +218,47 @@
                 });
         }
 
-        // 🔥🔥🔥 这里的代码完全回退到了您说好用的那个版本 🔥🔥🔥
+        // 🔥🔥🔥 这里的代码完全回退到了最原始版本，并加了弹窗验证 🔥🔥🔥
         function copyText(btn, text) {
-            // 1. 尝试使用新版 API (如果支持)
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text)
-                    .then(() => showCopied(btn))
-                    .catch(() => fallbackCopy(btn, text));
-            } else {
-                // 2. 如果不支持，使用老办法 (您之前说这个最好用)
-                fallbackCopy(btn, text);
-            }
-        }
-
-        function fallbackCopy(btn, text) {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            // 关键：这里去掉了 fancy 的隐藏属性，只保留基本操作，对安卓最友好
-            document.body.appendChild(ta);
-            ta.select();
-            
             try {
-                document.execCommand('copy');
-                showCopied(btn);
-            } catch (err) {
-                alert('请手动长按复制');
-            }
-            
-            document.body.removeChild(ta);
-        }
+                // 1. 创建一个输入框
+                var input = document.createElement('textarea');
+                input.value = text;
+                
+                // 2. 放在屏幕上 (不隐藏，只透明，防止安卓检测不到)
+                input.style.position = 'fixed';
+                input.style.opacity = '0.01'; 
+                input.style.top = '10px';
+                document.body.appendChild(input);
 
-        function showCopied(btn) {
-            const origin = btn.innerText;
-            btn.innerText = '已复制';
-            btn.classList.add('copied');
-            setTimeout(() => {
-                btn.innerText = origin;
-                btn.classList.remove('copied');
-            }, 1500);
+                // 3. 选中
+                input.focus();
+                input.select();
+
+                // 4. 执行复制
+                var result = document.execCommand('copy');
+                
+                // 5. 移除输入框
+                document.body.removeChild(input);
+
+                // 6. 结果判定
+                if (result) {
+                    // 成功反馈
+                    var origin = btn.innerText;
+                    btn.innerText = '已复制';
+                    btn.classList.add('copied');
+                    setTimeout(function() {
+                        btn.innerText = origin;
+                        btn.classList.remove('copied');
+                    }, 1500);
+                    // 临时弹窗，确认代码已生效 (调试用)
+                    // alert("复制成功：" + text); 
+                } else {
+                    alert("复制失败，请手动长按账号复制");
+                }
+            } catch (err) {
+                alert("发生错误: " + err);
+            }
         }
 
         function openModal(img) { document.getElementById('modalImg').src = img.src; document.getElementById('imageModal').style.display = 'flex'; }
