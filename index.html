@@ -3,295 +3,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple ID 共享账号</title>
+    <title>Apple ID 共享 | 免费分享</title>
 
-    <style>
-        html { display: none; }
-    </style>
+    <style> html { display: none; } </style>
 
     <script>
-        // 检测当前访问的域名
         var currentHost = window.location.hostname;
-        
-        // 🚨 黑名单列表：在这里写旧域名 (支持 pages.dev 通配)
+        // 🚨 拦截旧域名 (根据需要修改拦截逻辑)
         if (currentHost.includes('pages.dev') || currentHost === 'appleid-c4r.pages.dev') {
-            
-            // 🛑 核弹操作：立即停止浏览器的一切加载行为
             if (window.stop) window.stop();
-            
-            // 💀 销毁重建：用报错页面彻底覆盖原有内容
             document.open();
             document.write(`
                 <!DOCTYPE html>
                 <html>
-                <head>
-                    <title>403 Forbidden</title>
-                    <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <style>
-                        body { background: #fff; color: #000; font-family: sans-serif; text-align: center; padding-top: 10vh; margin: 0; }
-                        h1 { font-size: 2rem; margin-bottom: 1rem; }
-                        p { color: #666; }
-                        hr { width: 60%; margin: 2rem auto; border: 0; border-top: 1px solid #eee; }
-                    </style>
-                </head>
-                <body>
-                    <h1>403 Forbidden</h1>
-                    <hr>
-                    <p>Access Denied: You do not have permission to access.</p>
-                    <p>Login Failed.</p>
+                <head><title>403 Forbidden</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+                <body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-family:sans-serif;background:#f5f5f7;color:#333;">
+                    <div style="text-align:center;">
+                        <h1 style="font-size:4rem;margin:0;">403</h1>
+                        <p style="font-size:1.2rem;color:#888;">Access Denied / 拒绝访问</p>
+                    </div>
                 </body>
                 </html>
             `);
             document.close();
-            // 抛出错误以确保后续脚本不执行
-            throw new Error("Access Denied by Domain Policy");
-
+            throw new Error("Access Denied");
         } else {
-            // ✅ 如果是新域名 (如 id.319131.xyz)，解除隐身，正常显示
             document.documentElement.style.display = 'block';
         }
     </script>
 
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
     <style>
-        /* 📱 基础样式 */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f5f6f7; margin: 0; padding: 15px; color: #1f2329; -webkit-tap-highlight-color: transparent; }
-        h2 { text-align: center; font-size: 18px; margin: 10px 0 5px 0; color: #000; }
-        .visitor-count { text-align: center; font-size: 12px; color: #646a73; margin-bottom: 5px; display: flex; justify-content: center; gap: 15px; }
-        .visitor-count span { font-family: monospace; font-weight: bold; color: #3370ff; }
-        .refresh-tip { text-align: center; font-size: 12px; color: #8f959e; margin-bottom: 15px; }
-        .tutorial-section { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); border: 1px solid #dee0e3; }
-        .tutorial-title { font-weight: bold; color: #d0021b; margin-bottom: 10px; font-size: 15px; text-align: center; }
-        .image-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .side-by-side-img { width: 48%; height: auto; border-radius: 6px; border: 1px solid #eee; cursor: zoom-in; object-fit: cover; }
-        .image-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; animation: fadeIn 0.2s; }
-        .modal-content { margin: auto; display: block; max-width: 95%; max-height: 95%; border-radius: 5px; }
-        .modal-tip { position: absolute; bottom: 20px; color: #fff; font-size: 14px; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
-        @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
-        .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); border: 1px solid #dee0e3; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #eff0f1; }
-        .region-badge { font-weight: 700; font-size: 16px; display: flex; align-items: center; }
-        .region-badge::before { content: ''; display: inline-block; width: 4px; height: 16px; background: #3370ff; margin-right: 8px; border-radius: 2px; }
-        .status-badge { font-size: 12px; padding: 2px 8px; border-radius: 4px; background: #eafff2; color: #00b656; }
-        .row { margin-bottom: 12px; }
-        .row:last-child { margin-bottom: 0; }
-        .label { font-size: 12px; color: #8f959e; margin-bottom: 4px; }
-        .value-box { display: flex; align-items: center; background: #f5f6f7; border-radius: 6px; padding: 10px; border: 1px solid #dee0e3; position: relative; }
-        .value-text { flex: 1; font-family: "SF Mono", Consolas, monospace; font-size: 14px; word-break: break-all; margin-right: 10px; }
-        .copy-btn { background: #3370ff; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-        .copy-btn:active { opacity: 0.8; transform: scale(0.95); }
-        .copy-btn.copied { background: #00b656; }
-        .footer { text-align: right; font-size: 11px; color: #bbbfc4; margin-top: 8px; }
-
-        /* 🔒 访问锁样式 */
-        #main-content { display: none; }
-        .lock-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #f5f6f7; z-index: 10000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        /* 🎨 全局变量 */
+        :root {
+            --primary-color: #0071e3;
+            --success-color: #34c759;
+            --danger-bg: #fff2f2;
+            --danger-text: #ff3b30;
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --text-sub: #86868b;
         }
-        .lock-box {
-            background: white; padding: 30px; border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 80%; max-width: 320px;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 📱 响应式容器：大屏宽，小屏窄 */
+        .container {
+            max-width: 1200px; /* 电脑端最大宽度 */
+            margin: 0 auto;
+        }
+
+        /* 顶部内容收窄，防止大屏阅读困难 */
+        .header-section {
+            max-width: 700px;
+            margin: 0 auto 30px auto;
+        }
+
+        /* 🚨 警告横幅 */
+        .alert-box {
+            background: var(--danger-bg);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
             text-align: center;
         }
-        .lock-title { font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #333; }
-        .lock-input {
-            width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd;
-            border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none;
-            text-align: center; transition: border 0.2s;
+        .alert-title {
+            color: var(--danger-text);
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 8px;
         }
-        .lock-input:focus { border-color: #3370ff; }
-        .lock-btn {
-            width: 100%; padding: 12px; background: #3370ff; color: white;
-            border: none; border-radius: 8px; font-size: 16px; font-weight: bold;
+        .alert-content {
+            font-size: 13px;
+            color: #d70015;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        /* 📢 信息栏 */
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .contact-link {
+            font-size: 14px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* 📱 卡片网格系统 (响应式核心) */
+        #app {
+            display: grid;
+            gap: 20px;
+            /* 默认手机单列 */
+            grid-template-columns: 1fr; 
+        }
+
+        /* 💻 平板和电脑端适配 */
+        @media (min-width: 768px) {
+            #app {
+                /* iPad/电脑自动分列：最小宽度320px，自动填满 */
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            }
+            body { padding: 40px; }
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* 电脑端鼠标悬停效果 */
+        @media (hover: hover) {
+            .card:hover { 
+                transform: translateY(-4px); 
+                box-shadow: 0 12px 30px rgba(0,0,0,0.08); 
+            }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f5;
+        }
+        .region-tag {
+            background: #e3f2fd;
+            color: #007aff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .status-dot {
+            font-size: 12px;
+            color: var(--success-color);
+            background: rgba(52, 199, 89, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .status-dot::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--success-color);
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .account-row { margin-bottom: 15px; }
+        .row-label { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
+        
+        .input-group {
+            display: flex;
+            background: #f2f2f7;
+            border-radius: 12px;
+            padding: 5px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        /* 电脑端输入框聚焦光圈 */
+        .input-group:focus-within { background: #fff; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,113,227,0.15); }
+        
+        .data-text {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            width: 100%;
+        }
+        
+        .copy-btn {
+            background: #fff;
+            color: var(--primary-color);
+            border: 1px solid rgba(0,0,0,0.05);
+            padding: 0 18px;
+            margin: 3px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
-        .lock-btn:active { opacity: 0.9; }
-        .lock-error { color: #d0021b; font-size: 13px; margin-top: 10px; display: none; }
+        .copy-btn:hover { background: #fafafa; }
+        .copy-btn:active { transform: scale(0.95); }
+        .copy-btn.copied { background: var(--success-color); color: #fff; border-color: transparent; }
+
+        .last-check {
+            text-align: right;
+            font-size: 11px;
+            color: #c7c7cc;
+            margin-top: 10px;
+        }
+
+        /* 教程区 */
+        .tutorial-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .tutorial-img {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+            cursor: zoom-in;
+            transition: opacity 0.2s;
+        }
+        .tutorial-img:hover { opacity: 0.85; }
+
+        /* 🔐 锁屏 */
+        #main-content { display: none; }
+        .lock-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(245, 245, 247, 0.9);
+            backdrop-filter: blur(15px); /* 磨砂玻璃效果 */
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lock-card {
+            background: #fff;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            text-align: center;
+            width: 85%;
+            max-width: 340px;
+        }
+        .pass-input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e5e5ea;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            box-sizing: border-box;
+            background: #f9f9fa;
+        }
+        .pass-input:focus { border-color: var(--primary-color); background: #fff; }
+        .unlock-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .unlock-btn:hover { background: #0077ed; }
+
+        /* 图片弹窗 */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal img { max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
     </style>
 </head>
+
 <body>
 
-    <div id="lock-screen" class="lock-container">
-        <div class="lock-box">
-            <div class="lock-title">🔒 页面已加密</div>
-            <input type="password" id="password-input" class="lock-input" placeholder="请输入访问密码">
-            <button class="lock-btn" onclick="checkPassword()">解锁查看</button>
-            <div id="error-msg" class="lock-error">密码错误，请重试</div>
+    <div id="lock-screen" class="lock-overlay">
+        <div class="lock-card">
+            <div style="font-size:48px;margin-bottom:10px;">🔒</div>
+            <h3 style="margin:0;color:#1d1d1f;font-size:20px;">访问受限</h3>
+            <p style="color:#86868b;font-size:14px;margin:8px 0 0 0;">请输入密码以查看共享账号</p>
+            <input type="password" id="password-input" class="pass-input" placeholder="输入密码">
+            <button class="unlock-btn" onclick="checkPassword()">解锁进入</button>
+            <div id="error-msg" style="color:#ff3b30;font-size:13px;margin-top:15px;display:none;">⚠️ 密码错误，请重试</div>
         </div>
     </div>
 
-    <div id="main-content">
-        <h1>别登录设置！！！！</h1>
-        <h1>别绑定自己手机号！！！！</h1>
-        <h1>以上后果自负！！！！</h1>
-        <h2>买小火箭加 han91918888</h2>
-        <div class="visitor-count">
-            <span id="busuanzi_container_site_uv" style="display:none">👤 访客: <span id="busuanzi_value_site_uv">--</span></span>
-            <span id="busuanzi_container_site_pv" style="display:none">👁️ 浏览: <span id="busuanzi_value_site_pv">--</span></span>
-        </div>
-        <div class="refresh-tip" id="status-tip">正在获取最新数据...</div>
+    <div id="main-content" class="container">
+        
+        <div class="header-section">
+            <div class="alert-box">
+                <div class="alert-title">⚠️ 严禁违规操作 (封号警告)</div>
+                <ul class="alert-content">
+                    <li>🚫 <strong>绝对不要</strong>在【设置】里登录 iCloud</li>
+                    <li>🚫 <strong>绝对不要</strong>绑定自己的手机号</li>
+                    <li>✅ 仅限在 App Store 商店登录下载软件</li>
+                </ul>
+            </div>
 
-        <div class="tutorial-section">
-            <div class="tutorial-title">⚠️ 使用前必看 (点击图片放大)</div>
-            <div class="image-row">
-                <img src="./warning.png" class="side-by-side-img" onclick="openModal(this)" alt="警告">
-                <img src="./guide.jpg" class="side-by-side-img" onclick="openModal(this)" alt="教程">
+            <div class="info-bar">
+                <a href="#" class="contact-link">🚀 买小火箭加: han91918888</a>
+                <div class="visitor-count">
+                    <span id="busuanzi_container_site_pv" style="display:none;font-size:11px;color:#999;">
+                        👀 访问量: <span id="busuanzi_value_site_pv" style="color:#333;font-weight:bold;">--</span>
+                    </span>
+                </div>
+            </div>
+
+            <div style="margin-bottom:12px;font-size:14px;color:#1d1d1f;font-weight:600;padding-left:4px;">📖 新手必看 (点击放大)</div>
+            <div class="tutorial-grid">
+                <img src="./warning.png" class="tutorial-img" onclick="openModal(this)" alt="警告">
+                <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)" alt="教程">
+            </div>
+
+            <div id="status-tip" style="text-align:center;font-size:13px;color:#86868b;margin-top:20px;">
+                <div class="spinner" style="display:inline-block;animation:spin 1s linear infinite;">⏳</div> 正在同步 GitHub 数据...
             </div>
         </div>
 
         <div id="app"></div>
+        
+    </div>
 
-        <div id="imageModal" class="image-modal" onclick="closeModal()">
-            <img class="modal-content" id="modalImg">
-            <div class="modal-tip">点击任意处关闭</div>
-        </div>
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <img id="modalImg">
     </div>
 
     <script>
-        // ===========================================
-        // 👇👇👇 这里的配置非常重要！ 👇👇👇
-        const GITHUB_USERNAME = 'ChengHana';  
-        const GIST_ID = 'e79ed4c61b1c7a5d37292b398ad11c36';
-        const GIST_FILENAME = 'data.json';
-        const ACCESS_PASSWORD = 'ad123'; 
-        const LOCK_TIME_HOURS = 12; // ⏳ 这里设置免密时间 (小时)
-        // ===========================================
+        // ================= 配置区 =================
+        const CONFIG = {
+            USER: 'ChengHana',
+            GIST: 'e79ed4c61b1c7a5d37292b398ad11c36',
+            FILE: 'data.json',
+            PASS: 'ad123',
+            HOURS: 12
+        };
+        // ==========================================
 
-        // 🔒 密码验证逻辑 (含12小时有效期)
         function checkPassword() {
             const input = document.getElementById('password-input');
-            const errorMsg = document.getElementById('error-msg');
-            const lockScreen = document.getElementById('lock-screen');
-            const mainContent = document.getElementById('main-content');
-
-            if (input.value === ACCESS_PASSWORD) {
-                // 1. 界面解锁
-                lockScreen.style.display = 'none';
-                mainContent.style.display = 'block';
-                
-                // 2. 存入当前时间戳
-                localStorage.setItem('unlock_timestamp', new Date().getTime());
-                
-                // 3. 加载数据
-                initData(); 
+            if (input.value === CONFIG.PASS) {
+                unlockUI();
+                localStorage.setItem('unlock_ts', Date.now());
+                initData();
             } else {
-                errorMsg.style.display = 'block';
+                document.getElementById('error-msg').style.display = 'block';
                 input.value = '';
                 input.focus();
             }
         }
 
-        // 🚀 页面加载时检查时间戳
-        window.onload = function() {
-            const savedTime = localStorage.getItem('unlock_timestamp');
-            const lockScreen = document.getElementById('lock-screen');
-            const mainContent = document.getElementById('main-content');
-
-            if (savedTime) {
-                const now = new Date().getTime();
-                const diffHours = (now - parseInt(savedTime)) / (1000 * 60 * 60); // 算出过了几小时
-
-                if (diffHours < LOCK_TIME_HOURS) {
-                    // 时间未过期：自动解锁
-                    lockScreen.style.display = 'none';
-                    mainContent.style.display = 'block';
-                    initData(); // 直接加载数据
-                } else {
-                    // 时间已过期：清除旧记录，显示锁屏
-                    localStorage.removeItem('unlock_timestamp');
-                    lockScreen.style.display = 'flex';
-                }
-            }
+        function unlockUI() {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
         }
 
-        // 数据加载主函数
-        function initData() {
-            const dataUrl = `https://gist.githubusercontent.com/${GITHUB_USERNAME}/${GIST_ID}/raw/${GIST_FILENAME}?t=${new Date().getTime()}`;
+        window.onload = function() {
+            const ts = localStorage.getItem('unlock_ts');
+            if (ts && (Date.now() - ts) < CONFIG.HOURS * 3600000) {
+                unlockUI();
+                initData();
+            }
+        };
 
-            fetch(dataUrl)
-                .then(res => {
-                    if (!res.ok) throw new Error("连接失败");
-                    return res.json();
-                })
+        function initData() {
+            const url = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/${CONFIG.FILE}?t=${Date.now()}`;
+            
+            fetch(url)
+                .then(res => res.json())
                 .then(json => {
                     const app = document.getElementById('app');
                     const tip = document.getElementById('status-tip');
-
-                    if (!json.data || json.data.length === 0) {
-                        app.innerHTML = '<div style="text-align:center;padding:20px;color:#999">暂无可用数据</div>';
-                        tip.style.display = 'none';
+                    
+                    if (!json.data || !json.data.length) {
+                        tip.innerText = "暂无可用数据";
                         return;
                     }
 
-                    const updateTime = json.updated_at ? new Date(json.updated_at).toLocaleString() : '刚刚';
-                    tip.innerHTML = `最后更新: ${updateTime} · 共 ${json.data.length} 个账号`;
+                    const time = json.updated_at ? new Date(json.updated_at).toLocaleTimeString() : '刚刚';
+                    tip.innerText = `最后更新: ${time} · 在线 ${json.data.length} 个`;
 
                     let html = '';
-                    json.data.forEach((item) => {
+                    json.data.forEach(item => {
                         html += `
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="region-badge">${item.region || '未知区域'}</div>
-                                    <div class="status-badge">● ${item.status}</div>
-                                </div>
-                                <div class="row">
-                                    <div class="label">账号</div>
-                                    <div class="value-box">
-                                        <div class="value-text">${item.username}</div>
-                                        <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="label">密码</div>
-                                    <div class="value-box">
-                                        <div class="value-text">${item.password}</div>
-                                        <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
-                                    </div>
-                                </div>
-                                <div class="footer">Check: ${item.checkTime ? item.checkTime.split(' ')[1] : ''}</div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="region-tag">${item.region || '全球'}</span>
+                                <span class="status-dot">${item.status || '正常'}</span>
                             </div>
-                        `;
+                            
+                            <div class="account-row">
+                                <div class="row-label">Apple ID 账号</div>
+                                <div class="input-group">
+                                    <input class="data-text" value="${item.username}" readonly onclick="this.select()">
+                                    <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
+                                </div>
+                            </div>
+                            
+                            <div class="account-row">
+                                <div class="row-label">密码 Password</div>
+                                <div class="input-group">
+                                    <input class="data-text" value="${item.password}" readonly onclick="this.select()">
+                                    <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
+                                </div>
+                            </div>
+                            
+                            <div class="last-check">检测时间: ${item.checkTime ? item.checkTime.split(' ')[1] : time}</div>
+                        </div>`;
                     });
                     app.innerHTML = html;
                 })
                 .catch(err => {
-                    document.getElementById('status-tip').innerHTML = "数据加载失败，请检查 Gist ID 是否配置正确";
-                    console.log("加载失败:", err);
+                    document.getElementById('status-tip').innerText = "数据加载失败，请刷新重试";
                 });
         }
 
         function copyText(btn, text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed'; 
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
+            // 兼容性复制逻辑
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => showCopied(btn)).catch(() => fallbackCopy(btn, text));
+            } else {
+                fallbackCopy(btn, text);
+            }
+        }
+
+        function fallbackCopy(btn, text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed'; // 防止页面滚动
+            document.body.appendChild(ta);
+            ta.select();
             try {
                 document.execCommand('copy');
-                const originalText = btn.innerText;
-                btn.innerText = '成功';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.classList.remove('copied');
-                }, 1500);
-            } catch (err) { alert('复制失败'); }
-            document.body.removeChild(textarea);
+                showCopied(btn);
+            } catch (err) {
+                alert("复制失败，请手动长按复制");
+            }
+            document.body.removeChild(ta);
         }
 
-        function openModal(imgElement) {
-            var modal = document.getElementById("imageModal");
-            var modalImg = document.getElementById("modalImg");
-            modal.style.display = "flex";
-            modalImg.src = imgElement.src;
+        function showCopied(btn) {
+            const origin = btn.innerText;
+            btn.innerText = '已复制';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerText = origin;
+                btn.classList.remove('copied');
+            }, 1500);
         }
 
+        function openModal(img) {
+            document.getElementById('modalImg').src = img.src;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
         function closeModal() {
-            var modal = document.getElementById("imageModal");
-            modal.style.display = "none";
+            document.getElementById('imageModal').style.display = 'none';
         }
     </script>
 </body>
