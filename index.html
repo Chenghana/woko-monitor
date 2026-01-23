@@ -220,51 +220,62 @@
                 });
         }
 
-        // 🔥🔥🔥 核心修复：针对 iOS/Android 的强力复制逻辑 🔥🔥🔥
+        // 🔥🔥🔥 终极通用复制函数 (修复安卓失败问题) 🔥🔥🔥
         function copyText(btn, text) {
-            // 1. 优先尝试现代 API (最快)
+            // 1. 尝试现代 Clipboard API (部分安卓浏览器在 HTTPS 下支持良好)
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text)
                     .then(() => showCopied(btn))
-                    .catch(() => fallbackCopy(btn, text)); // 失败则用备用方案
+                    .catch(() => fallbackCopy(btn, text)); // 失败就用老方法
             } else {
                 fallbackCopy(btn, text);
             }
         }
 
         function fallbackCopy(btn, text) {
-            // 2. 备用方案：模拟选中输入框 (兼容性最好)
+            // 2. 传统兼容模式 (针对安卓做了特殊优化)
             const textArea = document.createElement("textarea");
             textArea.value = text;
             
-            // 关键：必须让它“可见”才能被选中，但要藏起来不让用户看到
-            textArea.style.position = "fixed"; 
-            textArea.style.left = "-9999px"; 
+            // 关键修正：不要移出屏幕！安卓会认为它是“不可见”的从而禁止选中。
+            // 我们把它放在左上角，但是设置为透明，这样既看不见，系统又认为它在屏幕里。
+            textArea.style.position = "fixed";
             textArea.style.top = "0";
-            textArea.setAttribute("readonly", "readonly"); // 防止手机弹出键盘
+            textArea.style.left = "0";
+            textArea.style.width = "2em";
+            textArea.style.height = "2em";
+            textArea.style.padding = "0";
+            textArea.style.border = "none";
+            textArea.style.outline = "none";
+            textArea.style.boxShadow = "none";
+            textArea.style.background = "transparent";
+            textArea.style.opacity = "0"; // 透明
+            
+            textArea.setAttribute("readonly", "true"); // 防止安卓键盘弹出
             
             document.body.appendChild(textArea);
 
-            // iOS 专属：特殊选中逻辑
+            // 安卓核心：先聚焦，再全选
+            textArea.focus();
+            textArea.select();
+
+            // iOS 核心：设置选中范围
             if (navigator.userAgent.match(/ipad|iphone/i)) {
-                const range = document.createRange();
-                range.selectNodeContents(textArea);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
                 textArea.setSelectionRange(0, 999999);
-            } else {
-                textArea.select();
             }
 
             try {
                 const successful = document.execCommand('copy');
-                if (successful) showCopied(btn);
-                else alert("自动复制失败，请手动长按账号复制");
+                if (successful) {
+                    showCopied(btn);
+                } else {
+                    // 如果实在不行，弹窗让用户手动复制 (最后一道防线)
+                    prompt("请长按下方文字复制:", text);
+                }
             } catch (err) {
-                alert("复制失败，请手动长按账号复制");
+                prompt("请长按下方文字复制:", text);
             }
-            
+
             document.body.removeChild(textArea);
         }
 
