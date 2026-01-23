@@ -9,6 +9,7 @@
 
     <script>
         var currentHost = window.location.hostname;
+        // 🚨 拦截逻辑
         if (currentHost.includes('pages.dev') || currentHost === 'appleid-c4r.pages.dev') {
             if (window.stop) window.stop();
             document.open();
@@ -23,6 +24,7 @@
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     
     <style>
+        /* 🎨 全局变量 */
         :root {
             --primary-color: #0071e3;
             --success-color: #34c759;
@@ -40,6 +42,7 @@
             padding: 20px 16px;
         }
 
+        /* 📱 响应式容器：大屏宽，小屏窄 */
         .container { max-width: 1200px; margin: 0 auto; }
         .header-section { max-width: 700px; margin: 0 auto 30px auto; }
 
@@ -60,6 +63,7 @@
         }
         .contact-link { font-size: 14px; color: var(--primary-color); text-decoration: none; font-weight: 600; }
 
+        /* 📱 卡片网格系统 */
         #app { display: grid; gap: 20px; grid-template-columns: 1fr; }
         @media (min-width: 768px) { #app { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } body { padding: 40px; } }
 
@@ -220,63 +224,34 @@
                 });
         }
 
-        // 🔥🔥🔥 终极通用复制函数 (修复安卓失败问题) 🔥🔥🔥
+        // 🔥🔥🔥 这里的代码完全回退到了您说好用的那个版本 🔥🔥🔥
         function copyText(btn, text) {
-            // 1. 尝试现代 Clipboard API (部分安卓浏览器在 HTTPS 下支持良好)
+            // 1. 尝试使用新版 API (如果支持)
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text)
                     .then(() => showCopied(btn))
-                    .catch(() => fallbackCopy(btn, text)); // 失败就用老方法
+                    .catch(() => fallbackCopy(btn, text));
             } else {
+                // 2. 如果不支持，使用老办法 (您之前说这个最好用)
                 fallbackCopy(btn, text);
             }
         }
 
         function fallbackCopy(btn, text) {
-            // 2. 传统兼容模式 (针对安卓做了特殊优化)
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            // 关键：这里去掉了 fancy 的隐藏属性，只保留基本操作，对安卓最友好
+            document.body.appendChild(ta);
+            ta.select();
             
-            // 关键修正：不要移出屏幕！安卓会认为它是“不可见”的从而禁止选中。
-            // 我们把它放在左上角，但是设置为透明，这样既看不见，系统又认为它在屏幕里。
-            textArea.style.position = "fixed";
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.width = "2em";
-            textArea.style.height = "2em";
-            textArea.style.padding = "0";
-            textArea.style.border = "none";
-            textArea.style.outline = "none";
-            textArea.style.boxShadow = "none";
-            textArea.style.background = "transparent";
-            textArea.style.opacity = "0"; // 透明
-            
-            textArea.setAttribute("readonly", "true"); // 防止安卓键盘弹出
-            
-            document.body.appendChild(textArea);
-
-            // 安卓核心：先聚焦，再全选
-            textArea.focus();
-            textArea.select();
-
-            // iOS 核心：设置选中范围
-            if (navigator.userAgent.match(/ipad|iphone/i)) {
-                textArea.setSelectionRange(0, 999999);
-            }
-
             try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showCopied(btn);
-                } else {
-                    // 如果实在不行，弹窗让用户手动复制 (最后一道防线)
-                    prompt("请长按下方文字复制:", text);
-                }
+                document.execCommand('copy');
+                showCopied(btn);
             } catch (err) {
-                prompt("请长按下方文字复制:", text);
+                alert('请手动长按复制');
             }
-
-            document.body.removeChild(textArea);
+            
+            document.body.removeChild(ta);
         }
 
         function showCopied(btn) {
