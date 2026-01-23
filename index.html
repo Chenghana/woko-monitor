@@ -1,28 +1,57 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<script>
-    // 🚪 门卫逻辑：检测当前访问的是不是旧域名
-    if (window.location.hostname === 'appleid-c4r.pages.dev') {
-        // 🛑 如果是旧域名，直接摧毁页面内容，显示报错
-        document.documentElement.innerHTML = `
-            <html>
-            <head><title>403 Forbidden</title></head>
-            <body style="text-align:center; padding-top:100px; font-family:sans-serif;">
-                <h1>403 Forbidden</h1>
-                <hr style="width:60%">
-                <p>Login Failed: You do not have permission to access.</p>
-            </body>
-            </html>
-        `;
-        // ⛔️ 强制停止后续所有代码的加载（防止真实数据泄露）
-        throw new Error("Access Denied by Domain Policy");
-    }
-    // ✅ 如果是 id.319131.xyz，代码会忽略上面这段，继续向下加载正常内容
-</script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Apple ID 共享账号</title>
+
+    <style>
+        html { display: none; }
+    </style>
+
+    <script>
+        // 检测当前访问的域名
+        var currentHost = window.location.hostname;
+        
+        // 🚨 黑名单列表：在这里写旧域名 (支持 pages.dev 通配)
+        if (currentHost.includes('pages.dev') || currentHost === 'appleid-c4r.pages.dev') {
+            
+            // 🛑 核弹操作：立即停止浏览器的一切加载行为
+            if (window.stop) window.stop();
+            
+            // 💀 销毁重建：用报错页面彻底覆盖原有内容
+            document.open();
+            document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>403 Forbidden</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <style>
+                        body { background: #fff; color: #000; font-family: sans-serif; text-align: center; padding-top: 10vh; margin: 0; }
+                        h1 { font-size: 2rem; margin-bottom: 1rem; }
+                        p { color: #666; }
+                        hr { width: 60%; margin: 2rem auto; border: 0; border-top: 1px solid #eee; }
+                    </style>
+                </head>
+                <body>
+                    <h1>403 Forbidden</h1>
+                    <hr>
+                    <p>Access Denied: You do not have permission to access.</p>
+                    <p>Login Failed.</p>
+                </body>
+                </html>
+            `);
+            document.close();
+            // 抛出错误以确保后续脚本不执行
+            throw new Error("Access Denied by Domain Policy");
+
+        } else {
+            // ✅ 如果是新域名 (如 id.319131.xyz)，解除隐身，正常显示
+            document.documentElement.style.display = 'block';
+        }
+    </script>
+
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     <style>
         /* 📱 基础样式 */
@@ -142,7 +171,7 @@
                 lockScreen.style.display = 'none';
                 mainContent.style.display = 'block';
                 
-                // 2. 存入当前时间戳 (这是关键修改)
+                // 2. 存入当前时间戳
                 localStorage.setItem('unlock_timestamp', new Date().getTime());
                 
                 // 3. 加载数据
