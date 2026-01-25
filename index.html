@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple ID 共享 | 免费分享</title>
+    <title>Apple ID 共享</title>
 
     <style> html { display: none; } </style>
 
@@ -33,7 +33,7 @@
         }
 
         body {
-            font-family: sans-serif; /* 安卓最喜欢的通用字体 */
+            font-family: sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
@@ -60,7 +60,6 @@
         }
         .contact-link { font-size: 14px; color: var(--primary-color); text-decoration: none; font-weight: 600; }
 
-        /* 布局保持自适应 */
         #app { display: grid; gap: 20px; grid-template-columns: 1fr; }
         @media (min-width: 768px) { #app { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } body { padding: 40px; } }
 
@@ -136,7 +135,9 @@
 
             <div class="info-bar">
                 <a href="#" class="contact-link">🚀 买小火箭加: han91918888</a>
-                <div class="visitor-count"><span id="busuanzi_container_site_pv" style="display:none;font-size:11px;color:#999;">👀 <span id="busuanzi_value_site_pv">--</span></span></div>
+                <div class="visitor-count">
+                    <span id="busuanzi_container_site_pv" style="display:none;font-size:11px;color:#999;">👀 <span id="busuanzi_value_site_pv">--</span></span>
+                </div>
             </div>
 
             <div style="margin-bottom:12px;font-size:14px;font-weight:600;">📖 新手必看</div>
@@ -145,7 +146,7 @@
                 <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)">
             </div>
 
-            <div id="status-tip" style="text-align:center;font-size:13px;color:#86868b;margin-top:20px;">⏳ 正在获取数据...</div>
+            <div id="status-tip" style="text-align:center;font-size:12px;color:#8f959e;margin-top:20px;">⏳ 正在获取最新数据...</div>
         </div>
 
         <div id="app"></div>
@@ -187,8 +188,16 @@
                 .then(res => res.json())
                 .then(json => {
                     const app = document.getElementById('app');
-                    if (!json.data || !json.data.length) { document.getElementById('status-tip').innerText = "暂无数据"; return; }
-                    document.getElementById('status-tip').innerText = `在线 ${json.data.length} 个`;
+                    const tip = document.getElementById('status-tip');
+
+                    if (!json.data || !json.data.length) { 
+                        tip.innerText = "暂无数据"; 
+                        return; 
+                    }
+
+                    // 🛠️ 核心修复：显示最后更新时间和账号总数
+                    const updateTime = json.updated_at ? new Date(json.updated_at).toLocaleString() : '刚刚';
+                    tip.innerHTML = `最后更新: ${updateTime} · 共 ${json.data.length} 个账号`;
 
                     let html = '';
                     json.data.forEach(item => {
@@ -215,35 +224,26 @@
                         </div>`;
                     });
                     app.innerHTML = html;
+                })
+                .catch(err => {
+                    document.getElementById('status-tip').innerText = "数据加载失败，请检查 Gist 配置";
                 });
         }
 
-        // 🔥🔥🔥 这里的代码完全回退到了最原始版本，并加了弹窗验证 🔥🔥🔥
         function copyText(btn, text) {
             try {
-                // 1. 创建一个输入框
                 var input = document.createElement('textarea');
                 input.value = text;
-                
-                // 2. 放在屏幕上 (不隐藏，只透明，防止安卓检测不到)
                 input.style.position = 'fixed';
                 input.style.opacity = '0.01'; 
                 input.style.top = '10px';
                 document.body.appendChild(input);
-
-                // 3. 选中
                 input.focus();
                 input.select();
-
-                // 4. 执行复制
                 var result = document.execCommand('copy');
-                
-                // 5. 移除输入框
                 document.body.removeChild(input);
 
-                // 6. 结果判定
                 if (result) {
-                    // 成功反馈
                     var origin = btn.innerText;
                     btn.innerText = '已复制';
                     btn.classList.add('copied');
@@ -251,8 +251,6 @@
                         btn.innerText = origin;
                         btn.classList.remove('copied');
                     }, 1500);
-                    // 临时弹窗，确认代码已生效 (调试用)
-                    // alert("复制成功：" + text); 
                 } else {
                     alert("复制失败，请手动长按账号复制");
                 }
