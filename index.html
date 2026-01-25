@@ -55,23 +55,21 @@
         }
         .contact-link { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
 
-        /* 📐 响应式网格 (电脑/iPad/手机) */
+        /* 📐 响应式网格适配 iPad 和电脑 */
         .grid-container {
             display: grid;
             gap: 20px;
             grid-template-columns: 1fr;
         }
-
         @media (min-width: 768px) {
             .grid-container { grid-template-columns: repeat(2, 1fr); }
             body { padding: 40px 20px; }
         }
-
         @media (min-width: 1024px) {
             .grid-container { grid-template-columns: repeat(3, 1fr); }
         }
 
-        /* 🏷️ 标题样式 */
+        /* 🏷️ 大标题样式 */
         .section-title {
             font-size: 26px; font-weight: 800; margin: 45px 0 25px 5px;
             display: flex; align-items: center; gap: 12px;
@@ -80,12 +78,7 @@
             content: ''; width: 5px; height: 28px; background: var(--primary); border-radius: 3px;
         }
 
-        /* 📱 卡片精修 */
-        .card {
-            background: var(--card); border-radius: 20px; padding: 24px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease;
-        }
+        .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); transition: transform 0.2s; }
         .card:hover { transform: translateY(-4px); }
 
         .card-header { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f5; padding-bottom: 15px; margin-bottom: 20px; min-height: 32px; }
@@ -93,31 +86,17 @@
         .status-dot { font-size: 12px; color: var(--success); background: rgba(52, 199, 89, 0.1); padding: 4px 10px; border-radius: 20px; }
 
         .row-label { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; }
-        .input-group {
-            display: flex; background: #f2f2f7; border-radius: 12px; padding: 5px; margin-bottom: 16px;
-        }
-        .data-text {
-            flex: 1; border: none; background: transparent; padding: 10px;
-            font-family: "SF Mono", Menlo, monospace; font-size: 15px; color: #333; outline: none; width: 100%;
-        }
-        .copy-btn {
-            background: #fff; color: var(--primary); border: 1px solid rgba(0,0,0,0.05);
-            padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
-        }
+        .input-group { display: flex; background: #f2f2f7; border-radius: 12px; padding: 5px; margin-bottom: 16px; }
+        .data-text { flex: 1; border: none; background: transparent; padding: 10px; font-family: monospace; font-size: 15px; color: #333; outline: none; width: 100%; }
+        .copy-btn { background: #fff; color: var(--primary); border: 1px solid rgba(0,0,0,0.05); padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .copy-btn.copied { background: var(--success); color: #fff; }
 
-        /* 🔐 锁屏逻辑 */
         #main-content { display: none; }
-        .lock-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(245, 245, 247, 0.98); backdrop-filter: blur(15px);
-            z-index: 999; display: flex; align-items: center; justify-content: center;
-        }
-        .lock-card { background: #fff; padding: 40px; border-radius: 28px; text-align: center; width: 85%; max-width: 340px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-        .pass-input { width: 100%; padding: 14px; border: 1px solid #e5e5ea; border-radius: 12px; margin: 20px 0; font-size: 18px; text-align: center; outline: none; background: #f9f9fa; }
+        .lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(245, 245, 247, 0.98); backdrop-filter: blur(15px); z-index: 999; display: flex; align-items: center; justify-content: center; }
+        .lock-card { background: #fff; padding: 40px; border-radius: 28px; text-align: center; width: 85%; max-width: 340px; }
+        .pass-input { width: 100%; padding: 14px; border: 1px solid #e5e5ea; border-radius: 12px; margin: 20px 0; font-size: 18px; text-align: center; outline: none; }
         .unlock-btn { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
 
-        /* 📖 教程图 */
         .tutorial-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .tutorial-img { width: 100%; border-radius: 12px; cursor: pointer; border: 1px solid #eee; }
     </style>
@@ -127,8 +106,7 @@
     <div id="lock-screen" class="lock-overlay">
         <div class="lock-card">
             <div style="font-size:48px;margin-bottom:10px;">🔒</div>
-            <h3 style="margin:0;">访问受限</h3>
-            <p style="color:#86868b;font-size:14px;margin:8px 0 0 0;">请输入密码解锁</p>
+            <h3>访问受限</h3>
             <input type="password" id="password-input" class="pass-input" placeholder="密码">
             <button class="unlock-btn" onclick="checkPassword()">确认进入</button>
             <div id="error-msg" style="color:#ff3b30;font-size:13px;margin-top:15px;display:none;">⚠️ 密码不正确</div>
@@ -147,12 +125,10 @@
 
             <div class="info-bar">
                 <a href="#" class="contact-link">🚀 购买咨询: han91918888</a>
-                <div class="visitor-count">
-                    <span id="busuanzi_container_site_pv" style="display:none;font-size:11px;color:#999;">👀 <span id="busuanzi_value_site_pv">--</span></span>
-                </div>
+                <div class="visitor-count"><span id="busuanzi_container_site_pv" style="display:none;font-size:11px;color:#999;">👀 <span id="busuanzi_value_site_pv">--</span></span></div>
             </div>
 
-            <div style="margin-bottom:12px;font-size:14px;font-weight:600;color:#1d1d1f;">📖 使用说明</div>
+            <div style="margin-bottom:12px;font-size:14px;font-weight:600;">📖 使用说明</div>
             <div class="tutorial-grid">
                 <img src="./warning.png" class="tutorial-img">
                 <img src="./guide.jpg" class="tutorial-img">
@@ -161,15 +137,15 @@
             <div id="status-tip" style="text-align:center;font-size:12px;color:#86868b;margin-top:20px;">⏳ 正在同步账号数据...</div>
         </div>
 
-        <div id="rocket-header" style="display:none;"><div class="section-title">🚀 小火箭共享账号</div></div>
-        <div id="app-rocket" class="grid-container"></div>
-
         <div id="fan-header" style="display:none;"><div class="section-title">🌍 各国共享账号</div></div>
         <div id="app-fan" class="grid-container"></div>
+
+        <div id="rocket-header" style="display:none;"><div class="section-title">🚀 小火箭共享账号</div></div>
+        <div id="app-rocket" class="grid-container"></div>
     </div>
 
     <script>
-        const CONFIG = { USER: 'ChengHana', GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', FILES: ['rocket.json', 'fan.json'], PASS: 'ad123', HOURS: 12 };
+        const CONFIG = { USER: 'ChengHana', GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', FILES: ['fan.json', 'rocket.json'], PASS: 'ad123', HOURS: 12 };
         
         function checkPassword() {
             if (document.getElementById('password-input').value === CONFIG.PASS) {
@@ -196,19 +172,20 @@
             const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
             const ts = Date.now();
             try {
-                const [resRocket, resFan] = await Promise.all(CONFIG.FILES.map(f => fetch(`${baseUrl}${f}?t=${ts}`).then(r => r.json())));
-                const latestTime = new Date(Math.max(resRocket.updated_at||0, resFan.updated_at||0)).toLocaleString();
-                tip.innerHTML = `最后同步: ${latestTime} · 累计在线 ${(resRocket.data?.length||0) + (resFan.data?.length||0)} 账号`;
+                // 确保按照 fan -> rocket 的顺序获取和渲染
+                const [resFan, resRocket] = await Promise.all(CONFIG.FILES.map(f => fetch(`${baseUrl}${f}?t=${ts}`).then(r => r.json())));
+                const latestTime = new Date(Math.max(resFan.updated_at||0, resRocket.updated_at||0)).toLocaleString();
+                tip.innerHTML = `最后同步: ${latestTime} · 累计在线 ${(resFan.data?.length||0) + (resRocket.data?.length||0)} 账号`;
                 
-                // 🚀 渲染小火箭 (不显示地区)
-                if (resRocket.data?.length > 0) { 
-                    document.getElementById('rocket-header').style.display='block'; 
-                    renderCards('app-rocket', resRocket.data, false); 
-                }
                 // 🌍 渲染各国共享 (显示地区)
                 if (resFan.data?.length > 0) { 
                     document.getElementById('fan-header').style.display='block'; 
                     renderCards('app-fan', resFan.data, true); 
+                }
+                // 🚀 渲染小火箭 (不显示地区)
+                if (resRocket.data?.length > 0) { 
+                    document.getElementById('rocket-header').style.display='block'; 
+                    renderCards('app-rocket', resRocket.data, false); 
                 }
             } catch (err) { tip.innerText = "数据同步异常，请刷新..."; }
         }
