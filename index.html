@@ -13,8 +13,6 @@
             document.documentElement.style.display = 'block';
         }
     </script>
-
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     
     <style>
         :root {
@@ -27,7 +25,6 @@
             --text-sub: #86868b;
         }
 
-        /* 🍎 苹果风格全局字体 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg);
@@ -40,7 +37,7 @@
         .container { max-width: 1200px; margin: 0 auto; }
         .header-section { max-width: 700px; margin: 0 auto 30px auto; }
 
-        /* 🚨 顶部警示框 (保留) */
+        /* 🚨 顶部警示框 */
         .alert-box {
             background: #fff2f2;
             border: 1px solid rgba(255, 59, 48, 0.15);
@@ -51,7 +48,7 @@
         }
         .alert-content { font-size: 13px; color: #d70015; list-style: none; padding: 0; margin: 0; line-height: 1.6; }
 
-        /* ℹ️ 信息栏 (保留) */
+        /* ℹ️ 信息栏 */
         .info-bar {
             display: flex; justify-content: space-between; align-items: center;
             background: #fff; padding: 12px 20px; border-radius: 12px;
@@ -59,59 +56,37 @@
         }
         .contact-link { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
 
-        /* 📐 响应式网格布局 (适配手机/iPad/电脑) */
-        .grid-container {
-            display: grid;
-            gap: 20px;
-            grid-template-columns: 1fr;
-        }
-        @media (min-width: 768px) {
-            .grid-container { grid-template-columns: repeat(2, 1fr); }
-            body { padding: 40px 20px; }
-        }
-        @media (min-width: 1024px) {
-            .grid-container { grid-template-columns: repeat(3, 1fr); }
-        }
+        /* 📐 布局 */
+        .grid-container { display: grid; gap: 20px; grid-template-columns: 1fr; }
+        @media (min-width: 768px) { .grid-container { grid-template-columns: repeat(2, 1fr); body { padding: 40px 20px; } } }
+        @media (min-width: 1024px) { .grid-container { grid-template-columns: repeat(3, 1fr); } }
 
-        /* 🏷️ 标题 */
-        .section-title {
-            font-size: 26px; font-weight: 800; margin: 45px 0 25px 5px;
-            display: flex; align-items: center; gap: 12px;
-        }
-        .section-title::before {
-            content: ''; width: 5px; height: 28px; background: var(--primary); border-radius: 3px;
-        }
+        .section-title { font-size: 26px; font-weight: 800; margin: 45px 0 25px 5px; display: flex; align-items: center; gap: 12px; }
+        .section-title::before { content: ''; width: 5px; height: 28px; background: var(--primary); border-radius: 3px; }
 
-        /* 📱 卡片样式 */
-        .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); transition: transform 0.2s; }
-        .card:hover { transform: translateY(-3px); }
-
-        .card-header { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f5; padding-bottom: 15px; margin-bottom: 20px; min-height: 32px; }
+        /* 📱 卡片 */
+        .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+        .card-header { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f5; padding-bottom: 15px; margin-bottom: 20px; }
         .region-tag { background: #e3f2fd; color: #007aff; padding: 5px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; }
-        
-        /* 状态标识 (红/绿) */
         .status-dot { font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
         .status-normal { color: var(--success); background: rgba(52, 199, 89, 0.1); }
         .status-error { color: var(--danger); background: rgba(255, 59, 48, 0.1); }
 
         .row-label { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
         .input-group { display: flex; background: #f2f2f7; border-radius: 12px; padding: 5px; margin-bottom: 16px; }
-        .data-text { flex: 1; border: none; background: transparent; padding: 10px; font-family: monospace; font-size: 15px; color: #333; outline: none; width: 100%; }
+        .data-text { flex: 1; border: none; background: transparent; padding: 10px; font-family: monospace; font-size: 15px; outline: none; width: 100%; }
         .copy-btn { background: #fff; color: var(--primary); border: 1px solid rgba(0,0,0,0.05); padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-        .copy-btn.copied { background: var(--success); color: #fff; }
 
-        /* 🔐 锁屏 */
+        /* 🔐 锁屏样式 */
         #main-content { display: none; }
         .lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(245, 245, 247, 0.98); backdrop-filter: blur(15px); z-index: 999; display: flex; align-items: center; justify-content: center; }
         .lock-card { background: #fff; padding: 40px; border-radius: 28px; text-align: center; width: 85%; max-width: 340px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
         .pass-input { width: 100%; padding: 14px; border: 1px solid #e5e5ea; border-radius: 12px; margin: 20px 0; font-size: 18px; text-align: center; outline: none; }
         .unlock-btn { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
-
-        /* 📖 教程图 (保留) */
+        
+        /* 📖 教程图 */
         .tutorial-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .tutorial-img { width: 100%; border-radius: 12px; cursor: zoom-in; border: 1px solid #eee; }
-        
-        /* 图片放大查看模态框 */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
         .modal img { max-width: 90%; max-height: 90%; border-radius: 12px; }
     </style>
@@ -140,13 +115,13 @@
 
             <div class="info-bar">
                 <a href="#" class="contact-link">🚀 购买咨询: han91918888</a>
-                <div class="visitor-count"><span id="busuanzi_container_site_pv" style="display:none;font-size:11px;color:#999;">👀 <span id="busuanzi_value_site_pv">--</span></span></div>
+                <div style="font-size:11px;color:#999;">实时同步中...</div>
             </div>
 
             <div style="margin-bottom:12px;font-size:14px;font-weight:600;">📖 使用说明 (点击放大)</div>
             <div class="tutorial-grid">
-                <img src="./warning.png" class="tutorial-img" onclick="openModal(this)">
-                <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)">
+                <img src="./warning.png" class="tutorial-img" onclick="openModal(this)" onerror="this.style.display='none'">
+                <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)" onerror="this.style.display='none'">
             </div>
 
             <div id="status-tip" style="text-align:center;font-size:12px;color:#86868b;margin-top:20px;">⏳ 正在获取实时账号数据...</div>
@@ -159,16 +134,20 @@
     <div id="imageModal" class="modal" onclick="closeModal()"><img id="modalImg"></div>
 
     <script>
+        // ✨ 配置区域
         const CONFIG = { 
             USER: 'ChengHana', 
             GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', 
             FILE: 'fan.json', 
-            PASS_MAIN: 'ad123', 
+            PASS_MAIN: 'ad123',  // 密码在这里
             HOURS: 12 
         };
         
+        // 🔐 核心解锁函数 (就是之前报错找不到的那个)
         function checkPassword() {
-            if (document.getElementById('password-input').value === CONFIG.PASS_MAIN) {
+            var input = document.getElementById('password-input').value;
+            // 去除空格再比对
+            if (input.trim() === CONFIG.PASS_MAIN) {
                 document.getElementById('lock-screen').style.display='none';
                 document.getElementById('main-content').style.display='block';
                 localStorage.setItem('unlock_ts', Date.now());
@@ -180,20 +159,19 @@
 
         window.onload = function() {
             const ts = localStorage.getItem('unlock_ts');
+            // 如果 12 小时内解锁过，自动进入
             if (ts && (Date.now() - ts) < CONFIG.HOURS * 3600000) {
                 document.getElementById('lock-screen').style.display='none';
                 document.getElementById('main-content').style.display='block';
                 initData();
             }
-            setInterval(initData, 60000); 
         };
 
         async function initData() {
             const tip = document.getElementById('status-tip');
             const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
-            const ts = Date.now();
             try {
-                const response = await fetch(`${baseUrl}${CONFIG.FILE}?t=${ts}`);
+                const response = await fetch(`${baseUrl}${CONFIG.FILE}?t=${Date.now()}`);
                 const json = await response.json();
 
                 if (json.data && json.data.length > 0) {
@@ -213,7 +191,6 @@
                 const isNormal = item.status === "正常";
                 const statusClass = isNormal ? 'status-normal' : 'status-error';
                 
-                // ✨ 这里是您要修改的地方：Apple ID -> 账号，Password -> 密码
                 html += `
                 <div class="card">
                     <div class="card-header">
@@ -238,3 +215,25 @@
                 </div>`;
             });
             container.innerHTML = html;
+        }
+
+        function copyText(btn, text) {
+            var input = document.createElement('textarea');
+            input.value = text;
+            input.style.position='fixed'; input.style.opacity='0.01';
+            document.body.appendChild(input);
+            input.focus(); input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            var origin = btn.innerText; 
+            btn.innerText = '已复制'; 
+            setTimeout(() => { btn.innerText = origin; }, 1500);
+        }
+
+        function openModal(img) { document.getElementById('modalImg').src = img.src; document.getElementById('imageModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('imageModal').style.display = 'none'; }
+        
+        setInterval(initData, 60000); 
+    </script>
+</body>
+</html>
