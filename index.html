@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple ID 共享</title>
+    <title>Apple ID 共享 | 适配全端</title>
 
     <style> html { display: none; } </style>
     <script>
@@ -55,7 +55,6 @@
         }
         .contact-link { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
 
-        /* 📐 响应式网格适配 iPad 和电脑 */
         .grid-container {
             display: grid;
             gap: 20px;
@@ -69,7 +68,6 @@
             .grid-container { grid-template-columns: repeat(3, 1fr); }
         }
 
-        /* 🏷️ 大标题样式 */
         .section-title {
             font-size: 26px; font-weight: 800; margin: 45px 0 25px 5px;
             display: flex; align-items: center; gap: 12px;
@@ -78,8 +76,26 @@
             content: ''; width: 5px; height: 28px; background: var(--primary); border-radius: 3px;
         }
 
-        .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); transition: transform 0.2s; }
-        .card:hover { transform: translateY(-4px); }
+        .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+
+        /* 🚀 小火箭专属锁样式 */
+        .rocket-lock-card {
+            grid-column: 1 / -1;
+            background: #fff;
+            border: 2px dashed #e5e5ea;
+            border-radius: 20px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .rocket-input {
+            padding: 12px; border: 1px solid #ddd; border-radius: 10px;
+            font-size: 16px; text-align: center; width: 200px; outline: none; margin-bottom: 15px;
+        }
+        .rocket-btn {
+            background: var(--primary); color: #fff; border: none;
+            padding: 12px 30px; border-radius: 10px; font-weight: 600; cursor: pointer;
+        }
 
         .card-header { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f5; padding-bottom: 15px; margin-bottom: 20px; min-height: 32px; }
         .region-tag { background: #e3f2fd; color: #007aff; padding: 5px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; }
@@ -93,7 +109,7 @@
 
         #main-content { display: none; }
         .lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(245, 245, 247, 0.98); backdrop-filter: blur(15px); z-index: 999; display: flex; align-items: center; justify-content: center; }
-        .lock-card { background: #fff; padding: 40px; border-radius: 28px; text-align: center; width: 85%; max-width: 340px; }
+        .lock-card { background: #fff; padding: 40px; border-radius: 28px; text-align: center; width: 85%; max-width: 340px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
         .pass-input { width: 100%; padding: 14px; border: 1px solid #e5e5ea; border-radius: 12px; margin: 20px 0; font-size: 18px; text-align: center; outline: none; }
         .unlock-btn { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
 
@@ -124,6 +140,7 @@
             </div>
 
             <div class="info-bar">
+                <a href="#" class="contact-link">🚀 购买咨询: han91918888</a>
                 <div class="visitor-count"><span id="busuanzi_container_site_pv" style="display:none;font-size:11px;color:#999;">👀 <span id="busuanzi_value_site_pv">--</span></span></div>
             </div>
 
@@ -140,20 +157,50 @@
         <div id="app-fan" class="grid-container"></div>
 
         <div id="rocket-header" style="display:none;"><div class="section-title">🚀 小火箭共享账号</div></div>
+        
+        <div id="rocket-lock-area" class="rocket-lock-card" style="display:none;">
+            <div style="font-size:32px;margin-bottom:10px;">🛡️</div>
+            <div style="font-weight:700;margin-bottom:10px;">该板块已加密</div>
+            <input type="password" id="rocket-pass" class="rocket-input" placeholder="输入小火箭密码">
+            <br>
+            <button class="rocket-btn" onclick="checkRocketPassword()">解密数据</button>
+            <div id="rocket-error" style="color:red;font-size:12px;margin-top:10px;display:none;">密码错误</div>
+        </div>
+
         <div id="app-rocket" class="grid-container"></div>
     </div>
 
     <script>
-        const CONFIG = { USER: 'ChengHana', GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', FILES: ['fan.json', 'rocket.json'], PASS: 'ad123', HOURS: 12 };
+        const CONFIG = { 
+            USER: 'ChengHana', 
+            GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', 
+            FILES: ['fan.json', 'rocket.json'], 
+            PASS_MAIN: 'ad123', 
+            PASS_ROCKET: 'ac123', // 🚀 小火箭专属密码
+            HOURS: 12 
+        };
+
+        let cachedRocketData = null; // 暂存小火箭数据
         
         function checkPassword() {
-            if (document.getElementById('password-input').value === CONFIG.PASS) {
+            if (document.getElementById('password-input').value === CONFIG.PASS_MAIN) {
                 document.getElementById('lock-screen').style.display='none';
                 document.getElementById('main-content').style.display='block';
                 localStorage.setItem('unlock_ts', Date.now());
                 initAllData();
             } else {
                 document.getElementById('error-msg').style.display='block';
+            }
+        }
+
+        // 🚀 校验小火箭板块密码
+        function checkRocketPassword() {
+            if (document.getElementById('rocket-pass').value === CONFIG.PASS_ROCKET) {
+                document.getElementById('rocket-lock-area').style.display = 'none';
+                localStorage.setItem('rocket_unlock_ts', Date.now());
+                renderCards('app-rocket', cachedRocketData, false);
+            } else {
+                document.getElementById('rocket-error').style.display = 'block';
             }
         }
 
@@ -171,20 +218,29 @@
             const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
             const ts = Date.now();
             try {
-                // 确保按照 fan -> rocket 的顺序获取和渲染
                 const [resFan, resRocket] = await Promise.all(CONFIG.FILES.map(f => fetch(`${baseUrl}${f}?t=${ts}`).then(r => r.json())));
                 const latestTime = new Date(Math.max(resFan.updated_at||0, resRocket.updated_at||0)).toLocaleString();
                 tip.innerHTML = `最后同步: ${latestTime} · 累计在线 ${(resFan.data?.length||0) + (resRocket.data?.length||0)} 账号`;
                 
-                // 🌍 渲染各国共享 (显示地区)
+                // 🌍 渲染各国共享 (直接显示)
                 if (resFan.data?.length > 0) { 
                     document.getElementById('fan-header').style.display='block'; 
                     renderCards('app-fan', resFan.data, true); 
                 }
-                // 🚀 渲染小火箭 (不显示地区)
-                if (resRocket.data?.length > 0) { 
-                    document.getElementById('rocket-header').style.display='block'; 
-                    renderCards('app-rocket', resRocket.data, false); 
+
+                // 🚀 处理小火箭逻辑
+                if (resRocket.data?.length > 0) {
+                    cachedRocketData = resRocket.data; // 存入变量
+                    document.getElementById('rocket-header').style.display = 'block';
+                    
+                    const rTs = localStorage.getItem('rocket_unlock_ts');
+                    if (rTs && (Date.now() - rTs) < CONFIG.HOURS * 3600000) {
+                        // 如果 12 小时内解过锁，直接显示
+                        renderCards('app-rocket', cachedRocketData, false);
+                    } else {
+                        // 否则显示加锁卡片
+                        document.getElementById('rocket-lock-area').style.display = 'block';
+                    }
                 }
             } catch (err) { tip.innerText = "数据同步异常，请刷新..."; }
         }
