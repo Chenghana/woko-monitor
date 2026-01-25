@@ -113,4 +113,137 @@
             <div style="font-size:48px;margin-bottom:10px;">🔒</div>
             <h3>访问受限</h3>
             <input type="password" id="password-input" class="pass-input" placeholder="请输入密码 ad123">
-            <button class="unlock-btn" onclick="
+            <button class="unlock-btn" onclick="checkPassword()">确认进入</button>
+            <div id="error-msg" style="color:#ff3b30;font-size:13px;margin-top:15px;display:none;">⚠️ 密码不正确</div>
+        </div>
+    </div>
+
+    <div id="main-content" class="container">
+        <div class="header-section">
+            <div class="alert-box">
+                <ul class="alert-content">
+                    <li>🚫 <strong>禁止</strong>在【设置】登录 iCloud</li>
+                    <li>🚫 <strong>禁止</strong>绑定个人手机号</li>
+                    <li>✅ 请仅在 App Store 商店登录</li>
+                </ul>
+            </div>
+
+            <div class="info-bar">
+                <a href="#" class="contact-link">🚀 购买咨询: han91918888</a>
+                <div class="visitor-count"><span id="busuanzi_container_site_pv" style="display:none;font-size:11px;color:#999;">👀 <span id="busuanzi_value_site_pv">--</span></span></div>
+            </div>
+
+            <div style="margin-bottom:12px;font-size:14px;font-weight:600;">📖 使用说明</div>
+            <div class="tutorial-grid">
+                <img src="./warning.png" class="tutorial-img">
+                <img src="./guide.jpg" class="tutorial-img">
+            </div>
+
+            <div id="status-tip" style="text-align:center;font-size:12px;color:#86868b;margin-top:20px;">⏳ 正在获取实时账号数据...</div>
+        </div>
+
+        <div id="fan-header" style="display:none;"><div class="section-title">🌍 各国共享账号</div></div>
+        <div id="app-fan" class="grid-container"></div>
+    </div>
+
+    <script>
+        const CONFIG = { 
+            USER: 'ChengHana', 
+            GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', 
+            FILE: 'fan.json', // 仅保留一个数据文件
+            PASS_MAIN: 'ad123', 
+            HOURS: 12 
+        };
+        
+        function checkPassword() {
+            if (document.getElementById('password-input').value === CONFIG.PASS_MAIN) {
+                document.getElementById('lock-screen').style.display='none';
+                document.getElementById('main-content').style.display='block';
+                localStorage.setItem('unlock_ts', Date.now());
+                initData();
+            } else {
+                document.getElementById('error-msg').style.display='block';
+            }
+        }
+
+        window.onload = function() {
+            const ts = localStorage.getItem('unlock_ts');
+            if (ts && (Date.now() - ts) < CONFIG.HOURS * 3600000) {
+                document.getElementById('lock-screen').style.display='none';
+                document.getElementById('main-content').style.display='block';
+                initData();
+            }
+            // 每 60 秒自动更新
+            setInterval(initData, 60000); 
+        };
+
+        async function initData() {
+            const tip = document.getElementById('status-tip');
+            const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
+            const ts = Date.now();
+            try {
+                const response = await fetch(`${baseUrl}${CONFIG.FILE}?t=${ts}`);
+                const json = await response.json();
+
+                if (json.data && json.data.length > 0) {
+                    const latestTime = json.updated_at ? new Date(json.updated_at).toLocaleString() : '刚刚';
+                    tip.innerHTML = `最后同步: ${latestTime} · 当前在线 ${json.data.length} 个账号`;
+                    
+                    document.getElementById('fan-header').style.display='block'; 
+                    renderCards('app-fan', json.data);
+                }
+            } catch (err) {
+                tip.innerText = "数据同步中，请刷新页面...";
+            }
+        }
+
+        function renderCards(targetId, data) {
+            const container = document.getElementById(targetId);
+            let html = '';
+            data.forEach(item => {
+                const isNormal = item.status === "正常";
+                const statusClass = isNormal ? 'status-normal' : 'status-error';
+                const statusText = isNormal ? '● 正常' : '● 异常';
+
+                html += `
+                <div class="card">
+                    <div class="card-header">
+                        <span class="region-tag">${item.region||'全球'}</span>
+                        <span class="status-dot ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="account-row">
+                        <div class="row-label">Apple ID</div>
+                        <div class="input-group">
+                            <input class="data-text" value="${item.username}" readonly>
+                            <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
+                        </div>
+                    </div>
+                    <div class="account-row">
+                        <div class="row-label">Password</div>
+                        <div class="input-group">
+                            <input class="data-text" value="${item.password}" readonly>
+                            <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
+                        </div>
+                    </div>
+                    ${item.checkTime ? `<div style="text-align:right; font-size:10px; color:#ccc; margin-top:5px;">检测于: ${item.checkTime}</div>` : ''}
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function copyText(btn, text) {
+            var input = document.createElement('textarea');
+            input.value = text;
+            input.style.position='fixed'; input.style.opacity='0.01';
+            document.body.appendChild(input);
+            input.focus(); input.select();
+            var result = document.execCommand('copy');
+            document.body.removeChild(input);
+            if (result) {
+                var origin = btn.innerText; btn.innerText = '已复制'; btn.classList.add('copied');
+                setTimeout(() => { btn.innerText = origin; btn.classList.remove('copied'); }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>
