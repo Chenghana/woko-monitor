@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple ID 共享</title>
+    <title>Apple ID 共享 | 整合版</title>
 
     <style> html { display: none; } </style>
-
     <script>
         var currentHost = window.location.hostname;
         if (currentHost.includes('pages.dev') || currentHost === 'appleid-c4r.pages.dev') {
@@ -60,8 +59,33 @@
         }
         .contact-link { font-size: 14px; color: var(--primary-color); text-decoration: none; font-weight: 600; }
 
-        #app { display: grid; gap: 20px; grid-template-columns: 1fr; }
-        @media (min-width: 768px) { #app { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } body { padding: 40px; } }
+        /* 大标题样式 */
+        .section-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 40px 0 20px 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .grid-container { 
+            display: grid; 
+            gap: 20px; 
+            grid-template-columns: 1fr; 
+        }
+        @media (min-width: 768px) { 
+            .grid-container { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } 
+            body { padding: 40px; } 
+        }
 
         .card {
             background: var(--card-bg); border-radius: 18px; padding: 24px;
@@ -146,10 +170,16 @@
                 <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)">
             </div>
 
-            <div id="status-tip" style="text-align:center;font-size:12px;color:#8f959e;margin-top:20px;">⏳ 正在获取最新数据...</div>
+            <div id="status-tip" style="text-align:center;font-size:12px;color:#86868b;margin-top:20px;">⏳ 正在获取多路数据...</div>
         </div>
 
-        <div id="app"></div>
+        <div id="app-apple" class="grid-container"></div>
+
+        <div id="rocket-header" style="display:none;">
+            <div class="section-title">🚀 小火箭共享账号</div>
+        </div>
+
+        <div id="app-rocket" class="grid-container"></div>
     </div>
 
     <div id="imageModal" class="modal" onclick="closeModal()"><img id="modalImg"></div>
@@ -158,7 +188,8 @@
         const CONFIG = {
             USER: 'ChengHana',
             GIST: 'e79ed4c61b1c7a5d37292b398ad11c36',
-            FILE: 'data.json',
+            FILE_APPLE: 'data.json',
+            FILE_ROCKET: 'rocket.json',
             PASS: 'ad123',
             HOURS: 12
         };
@@ -167,7 +198,7 @@
             if (document.getElementById('password-input').value === CONFIG.PASS) {
                 unlockUI();
                 localStorage.setItem('unlock_ts', Date.now());
-                initData();
+                initAllData();
             } else {
                 document.getElementById('error-msg').style.display = 'block';
             }
@@ -180,54 +211,71 @@
 
         window.onload = function() {
             const ts = localStorage.getItem('unlock_ts');
-            if (ts && (Date.now() - ts) < CONFIG.HOURS * 3600000) { unlockUI(); initData(); }
+            if (ts && (Date.now() - ts) < CONFIG.HOURS * 3600000) { unlockUI(); initAllData(); }
         };
 
-        function initData() {
-            fetch(`https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/${CONFIG.FILE}?t=${Date.now()}`)
-                .then(res => res.json())
-                .then(json => {
-                    const app = document.getElementById('app');
-                    const tip = document.getElementById('status-tip');
+        async function initAllData() {
+            const tip = document.getElementById('status-tip');
+            const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
+            const ts = Date.now();
 
-                    if (!json.data || !json.data.length) { 
-                        tip.innerText = "暂无数据"; 
-                        return; 
-                    }
+            try {
+                // 并发获取两路数据
+                const [resApple, resRocket] = await Promise.all([
+                    fetch(`${baseUrl}${CONFIG.FILE_APPLE}?t=${ts}`).then(r => r.json()),
+                    fetch(`${baseUrl}${CONFIG.FILE_ROCKET}?t=${ts}`).then(r => r.json())
+                ]);
 
-                    // 🛠️ 核心修复：显示最后更新时间和账号总数
-                    const updateTime = json.updated_at ? new Date(json.updated_at).toLocaleString() : '刚刚';
-                    tip.innerHTML = `最后更新: ${updateTime} · 共 ${json.data.length} 个账号`;
+                // 处理更新时间
+                const timeApple = resApple.updated_at || 0;
+                const timeRocket = resRocket.updated_at || 0;
+                const latestTime = new Date(Math.max(timeApple, timeRocket)).toLocaleString();
+                tip.innerHTML = `最后更新: ${latestTime} · 累计在线 ${(resApple.data?.length || 0) + (resRocket.data?.length || 0)} 个账号`;
 
-                    let html = '';
-                    json.data.forEach(item => {
-                        html += `
-                        <div class="card">
-                            <div class="card-header">
-                                <span class="region-tag">${item.region || '全球'}</span>
-                                <span class="status-dot">${item.status || '正常'}</span>
-                            </div>
-                            <div class="account-row">
-                                <div class="row-label">Apple ID</div>
-                                <div class="input-group">
-                                    <input class="data-text" value="${item.username}" readonly onclick="this.select()">
-                                    <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
-                                </div>
-                            </div>
-                            <div class="account-row">
-                                <div class="row-label">Password</div>
-                                <div class="input-group">
-                                    <input class="data-text" value="${item.password}" readonly onclick="this.select()">
-                                    <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
-                                </div>
-                            </div>
-                        </div>`;
-                    });
-                    app.innerHTML = html;
-                })
-                .catch(err => {
-                    document.getElementById('status-tip').innerText = "数据加载失败，请检查 Gist 配置";
-                });
+                // 渲染 Apple ID 账号
+                renderCards('app-apple', resApple.data);
+                
+                // 渲染 小火箭 账号
+                if (resRocket.data && resRocket.data.length > 0) {
+                    document.getElementById('rocket-header').style.display = 'block';
+                    renderCards('app-rocket', resRocket.data);
+                }
+
+            } catch (err) {
+                tip.innerText = "部分数据加载失败，请刷新页面";
+            }
+        }
+
+        function renderCards(targetId, data) {
+            const container = document.getElementById(targetId);
+            if (!data || data.length === 0) return;
+
+            let html = '';
+            data.forEach(item => {
+                html += `
+                <div class="card">
+                    <div class="card-header">
+                        <span class="region-tag">${item.region || '美区'}</span>
+                        <span class="status-dot">${item.status || '正常'}</span>
+                    </div>
+                    <div class="account-row">
+                        <div class="row-label">账号</div>
+                        <div class="input-group">
+                            <input class="data-text" value="${item.username}" readonly onclick="this.select()">
+                            <button class="copy-btn" onclick="copyText(this, '${item.username}')">复制</button>
+                        </div>
+                    </div>
+                    <div class="account-row">
+                        <div class="row-label">密码</div>
+                        <div class="input-group">
+                            <input class="data-text" value="${item.password}" readonly onclick="this.select()">
+                            <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
+                        </div>
+                    </div>
+                    ${item.checkTime ? `<div style="text-align:right; font-size:10px; color:#ccc;">同步时间: ${item.checkTime}</div>` : ''}
+                </div>`;
+            });
+            container.innerHTML = html;
         }
 
         function copyText(btn, text) {
@@ -251,12 +299,8 @@
                         btn.innerText = origin;
                         btn.classList.remove('copied');
                     }, 1500);
-                } else {
-                    alert("复制失败，请手动长按账号复制");
                 }
-            } catch (err) {
-                alert("发生错误: " + err);
-            }
+            } catch (err) {}
         }
 
         function openModal(img) { document.getElementById('modalImg').src = img.src; document.getElementById('imageModal').style.display = 'flex'; }
