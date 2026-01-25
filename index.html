@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple ID 共享 | 实时同步</title>
+    <title>Apple ID 共享 | 实时同步版</title>
 
     <style> html { display: none; } </style>
     <script>
@@ -57,7 +57,7 @@
         }
         .contact-link { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
 
-        /* 📐 响应式网格布局 (适配 iPad/电脑) */
+        /* 📐 响应式网格布局 */
         .grid-container {
             display: grid;
             gap: 20px;
@@ -71,6 +71,7 @@
             .grid-container { grid-template-columns: repeat(3, 1fr); }
         }
 
+        /* 🏷️ 标题 */
         .section-title {
             font-size: 26px; font-weight: 800; margin: 45px 0 25px 5px;
             display: flex; align-items: center; gap: 12px;
@@ -79,13 +80,13 @@
             content: ''; width: 5px; height: 28px; background: var(--primary); border-radius: 3px;
         }
 
-        .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); transition: transform 0.2s; }
-        .card:hover { transform: translateY(-4px); }
+        /* 📱 卡片样式 */
+        .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
         
         .card-header { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f5; padding-bottom: 15px; margin-bottom: 20px; min-height: 32px; }
         .region-tag { background: #e3f2fd; color: #007aff; padding: 5px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; }
         
-        /* 状态标识 */
+        /* 状态圆点与标签 */
         .status-dot { font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
         .status-normal { color: var(--success); background: rgba(52, 199, 89, 0.1); }
         .status-error { color: var(--danger); background: rgba(255, 59, 48, 0.1); }
@@ -96,6 +97,12 @@
         .copy-btn { background: #fff; color: var(--primary); border: 1px solid rgba(0,0,0,0.05); padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .copy-btn.copied { background: var(--success); color: #fff; }
 
+        /* 二级加密样式 */
+        .rocket-lock-card { grid-column: 1 / -1; background: #fff; border: 2px dashed #e5e5ea; border-radius: 20px; padding: 40px; text-align: center; }
+        .rocket-input { padding: 12px; border: 1px solid #ddd; border-radius: 10px; text-align: center; width: 180px; margin-bottom: 15px; }
+        .rocket-btn { background: var(--primary); color: #fff; border: none; padding: 12px 30px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+
+        /* 锁屏 */
         #main-content { display: none; }
         .lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(245, 245, 247, 0.98); backdrop-filter: blur(15px); z-index: 999; display: flex; align-items: center; justify-content: center; }
         .lock-card { background: #fff; padding: 40px; border-radius: 28px; text-align: center; width: 85%; max-width: 340px; }
@@ -112,7 +119,7 @@
         <div class="lock-card">
             <div style="font-size:48px;margin-bottom:10px;">🔒</div>
             <h3>访问受限</h3>
-            <input type="password" id="password-input" class="pass-input" placeholder="请输入密码 ad123">
+            <input type="password" id="password-input" class="pass-input" placeholder="请输入页面密码">
             <button class="unlock-btn" onclick="checkPassword()">确认进入</button>
             <div id="error-msg" style="color:#ff3b30;font-size:13px;margin-top:15px;display:none;">⚠️ 密码不正确</div>
         </div>
@@ -139,30 +146,51 @@
                 <img src="./guide.jpg" class="tutorial-img">
             </div>
 
-            <div id="status-tip" style="text-align:center;font-size:12px;color:#86868b;margin-top:20px;">⏳ 正在获取实时账号数据...</div>
+            <div id="status-tip" style="text-align:center;font-size:12px;color:#86868b;margin-top:20px;">⏳ 正在同步账号数据...</div>
         </div>
 
         <div id="fan-header" style="display:none;"><div class="section-title">🌍 各国共享账号</div></div>
         <div id="app-fan" class="grid-container"></div>
+
+        <div id="rocket-header" style="display:none;"><div class="section-title">🚀 小火箭共享账号</div></div>
+        <div id="rocket-lock-area" class="rocket-lock-card" style="display:none;">
+            <div style="font-size:32px;margin-bottom:10px;">🛡️</div>
+            <div style="font-weight:700;margin-bottom:10px;">该板块已加密</div>
+            <input type="password" id="rocket-pass" class="rocket-input" placeholder="">
+            <br>
+            <button class="rocket-btn" onclick="checkRocketPassword()">解密数据</button>
+        </div>
+        <div id="app-rocket" class="grid-container"></div>
     </div>
 
     <script>
         const CONFIG = { 
             USER: 'ChengHana', 
             GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', 
-            FILE: 'fan.json', // 仅保留一个数据文件
+            FILES: ['fan.json', 'rocket.json'], 
             PASS_MAIN: 'ad123', 
+            PASS_ROCKET: 'ac123', 
             HOURS: 12 
         };
+
+        let cachedRocketData = null;
         
         function checkPassword() {
             if (document.getElementById('password-input').value === CONFIG.PASS_MAIN) {
                 document.getElementById('lock-screen').style.display='none';
                 document.getElementById('main-content').style.display='block';
                 localStorage.setItem('unlock_ts', Date.now());
-                initData();
+                initAllData();
             } else {
                 document.getElementById('error-msg').style.display='block';
+            }
+        }
+
+        function checkRocketPassword() {
+            if (document.getElementById('rocket-pass').value === CONFIG.PASS_ROCKET) {
+                document.getElementById('rocket-lock-area').style.display = 'none';
+                localStorage.setItem('rocket_unlock_ts', Date.now());
+                renderCards('app-rocket', cachedRocketData, false);
             }
         }
 
@@ -171,33 +199,45 @@
             if (ts && (Date.now() - ts) < CONFIG.HOURS * 3600000) {
                 document.getElementById('lock-screen').style.display='none';
                 document.getElementById('main-content').style.display='block';
-                initData();
+                initAllData();
             }
-            // 每 60 秒自动更新
-            setInterval(initData, 60000); 
+            // 每 60 秒自动更新一次
+            setInterval(initAllData, 60000); 
         };
 
-        async function initData() {
+        async function initAllData() {
             const tip = document.getElementById('status-tip');
             const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
             const ts = Date.now();
             try {
-                const response = await fetch(`${baseUrl}${CONFIG.FILE}?t=${ts}`);
-                const json = await response.json();
+                const [resFan, resRocket] = await Promise.all(CONFIG.FILES.map(f => 
+                    fetch(`${baseUrl}${f}?t=${ts}`).then(r => r.json()).catch(() => ({ data: [] }))
+                ));
 
-                if (json.data && json.data.length > 0) {
-                    const latestTime = json.updated_at ? new Date(json.updated_at).toLocaleString() : '刚刚';
-                    tip.innerHTML = `最后同步: ${latestTime} · 当前在线 ${json.data.length} 个账号`;
-                    
+                const latestTime = new Date(Math.max(resFan.updated_at||0, resRocket.updated_at||0)).toLocaleString();
+                tip.innerHTML = `最后同步: ${latestTime} · 累计在线 ${(resFan.data?.length||0) + (resRocket.data?.length||0)} 账号`;
+
+                // 🌍 各国共享
+                if (resFan.data?.length > 0) { 
                     document.getElementById('fan-header').style.display='block'; 
-                    renderCards('app-fan', json.data);
+                    renderCards('app-fan', resFan.data, true); 
                 }
-            } catch (err) {
-                tip.innerText = "数据同步中，请刷新页面...";
-            }
+
+                // 🚀 小火箭处理
+                if (resRocket.data?.length > 0) {
+                    cachedRocketData = resRocket.data;
+                    document.getElementById('rocket-header').style.display = 'block';
+                    const rTs = localStorage.getItem('rocket_unlock_ts');
+                    if (rTs && (Date.now() - rTs) < CONFIG.HOURS * 3600000) {
+                        renderCards('app-rocket', cachedRocketData, false);
+                    } else {
+                        document.getElementById('rocket-lock-area').style.display = 'block';
+                    }
+                }
+            } catch (err) {}
         }
 
-        function renderCards(targetId, data) {
+        function renderCards(targetId, data, showRegion) {
             const container = document.getElementById(targetId);
             let html = '';
             data.forEach(item => {
@@ -208,7 +248,7 @@
                 html += `
                 <div class="card">
                     <div class="card-header">
-                        <span class="region-tag">${item.region||'全球'}</span>
+                        ${showRegion ? `<span class="region-tag">${item.region||'全球'}</span>` : '<div></div>'}
                         <span class="status-dot ${statusClass}">${statusText}</span>
                     </div>
                     <div class="account-row">
@@ -225,7 +265,7 @@
                             <button class="copy-btn" onclick="copyText(this, '${item.password}')">复制</button>
                         </div>
                     </div>
-                    ${item.checkTime ? `<div style="text-align:right; font-size:10px; color:#ccc; margin-top:5px;">检测于: ${item.checkTime}</div>` : ''}
+                    ${item.checkTime ? `<div style="text-align:right; font-size:10px; color:#ccc; margin-top:5px;">上次检查: ${item.checkTime}</div>` : ''}
                 </div>`;
             });
             container.innerHTML = html;
