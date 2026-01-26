@@ -43,7 +43,6 @@
             min-height: 100vh;
         }
 
-        /* 🌈 顶部导航背景 */
         .nav-bg {
             position: sticky; top: 0; z-index: 90;
             background: rgba(245, 245, 247, 0.8);
@@ -57,7 +56,6 @@
 
         .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px 60px 16px; }
 
-        /* 🚨 警示区域优化 */
         .alert-card {
             background: #fff;
             border-radius: var(--radius);
@@ -71,16 +69,15 @@
         .alert-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #333; background: #fff2f2; padding: 10px 14px; border-radius: 8px; }
         .alert-item.safe { background: #f0fdf4; color: #166534; }
 
-        /* 🖼️ 教程图 */
-        .tutorial-area { margin-bottom: 40px; }
+        /* 🖼️ 教程区域样式 */
+        .tutorial-area { margin-bottom: 40px; background: #fff; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
         .tutorial-img { 
-            width: 100%; border-radius: var(--radius); 
-            box-shadow: var(--shadow); cursor: zoom-in; 
+            width: 100%; border-radius: 12px; 
+            border: 1px solid #eee; cursor: zoom-in; 
             transition: transform 0.3s ease;
         }
         .tutorial-img:hover { transform: scale(1.01); }
 
-        /* 🏷️ 分区标题 */
         .section-header {
             display: flex; justify-content: space-between; align-items: end;
             margin-bottom: 20px; padding: 0 5px;
@@ -88,7 +85,6 @@
         .section-title { font-size: 24px; font-weight: 700; }
         .update-badge { font-size: 12px; background: #e5e5ea; padding: 4px 10px; border-radius: 20px; color: var(--text-sub); }
 
-        /* 📱 账号卡片网格 */
         .grid-container {
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
@@ -118,7 +114,6 @@
         .status-error .dot { background: var(--danger); }
         .status-error { color: var(--danger); }
 
-        /* 输入框组 */
         .field-group { margin-bottom: 16px; }
         .field-label { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; margin-left: 4px; }
         .input-wrapper {
@@ -144,7 +139,6 @@
         }
         .btn-copy:active { transform: scale(0.95); background: #f0f0f0; }
 
-        /* 🔐 锁屏优化 */
         .lock-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.8);
@@ -172,7 +166,6 @@
         }
         .lock-btn:hover { background: var(--primary-hover); }
 
-        /* 🍞 Toast 提示 (黑胶囊) */
         .toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
             background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px;
@@ -183,7 +176,6 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* 动画 */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
@@ -195,7 +187,6 @@
 </head>
 
 <body>
-
     <div id="toast" class="toast">✅ 复制成功</div>
 
     <div id="lock-screen" class="lock-overlay">
@@ -210,7 +201,6 @@
     </div>
 
     <div id="main-content" style="display:none; animation: fadeIn 0.6s ease;">
-        
         <div class="nav-bg">
             <div class="nav-title">🍎 Apple ID 共享中心</div>
         </div>
@@ -227,8 +217,18 @@
             </div>
 
             <div class="tutorial-area">
-                <div style="margin-bottom:10px;font-weight:600;color:var(--text-sub);">📖 操作指引 (点击查看大图)</div>
-                <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)" onerror="this.style.display='none'">
+                <div style="margin-bottom:20px;">
+                    <div style="margin-bottom:8px;font-weight:600;color:var(--text-sub);">📖 操作指引 (点击放大)</div>
+                    <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)" onerror="this.style.display='none'">
+                </div>
+
+                <div style="padding-top:20px; border-top:1px dashed #e5e5ea;">
+                    <div style="font-weight:700; color:#ff3b30; margin-bottom:6px; font-size:16px;">⚠️ 遇到 "账户被禁用" 报错？</div>
+                    <div style="font-size:14px; color:#333; margin-bottom:12px; line-height:1.6;">
+                        下载出现这个情况，<span style="font-weight:bold;background:#fff2f2;color:#d70015;padding:2px 5px;border-radius:4px;">直接卸载 App 重新下载</span> 就是最新版
+                    </div>
+                    <img src="./xiezai.jpg" class="tutorial-img" onclick="openModal(this)" onerror="this.style.display='none'">
+                </div>
             </div>
 
             <div class="section-header">
@@ -236,8 +236,7 @@
                 <div id="status-tip" class="update-badge">⏳ 连接数据中...</div>
             </div>
 
-            <div id="app-fan" class="grid-container">
-                </div>
+            <div id="app-fan" class="grid-container"></div>
 
             <div style="text-align:center; margin-top:50px; color:#ccc; font-size:12px;">
                 Designed for Efficiency · 严禁用于商业用途
@@ -250,7 +249,6 @@
     </div>
 
     <script>
-        // ✨ 配置区域 (保持您的原始配置)
         const CONFIG = { 
             USER: 'ChengHana', 
             GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', 
@@ -259,7 +257,6 @@
             HOURS: 12 
         };
         
-        // 🔐 解锁逻辑
         function checkPassword() {
             var input = document.getElementById('password-input').value;
             if (input.trim() === CONFIG.PASS_MAIN) {
@@ -272,14 +269,12 @@
                 initData();
             } else {
                 document.getElementById('error-msg').style.display='block';
-                // 错误动画
                 const box = document.querySelector('.lock-box');
                 box.style.transform = 'translateX(10px)';
                 setTimeout(() => box.style.transform = 'translateX(0)', 100);
             }
         }
 
-        // 自动登录检测
         window.onload = function() {
             const ts = localStorage.getItem('unlock_ts');
             if (ts && (Date.now() - ts) < CONFIG.HOURS * 3600000) {
@@ -289,7 +284,6 @@
             }
         };
 
-        // 📊 获取数据
         async function initData() {
             const tip = document.getElementById('status-tip');
             const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
@@ -309,7 +303,6 @@
             }
         }
 
-        // 🃏 渲染卡片
         function renderCards(targetId, data) {
             const container = document.getElementById(targetId);
             let html = '';
@@ -318,8 +311,6 @@
                 const statusHtml = isNormal 
                     ? `<span class="status-badge" style="color:var(--success)"><span class="dot"></span>正常</span>`
                     : `<span class="status-badge status-error"><span class="dot"></span>${item.status}</span>`;
-                
-                // 动画延迟
                 const delay = index * 0.05; 
                 
                 html += `
@@ -328,7 +319,6 @@
                         <span class="region-badge">${item.region||'全球'}</span>
                         ${statusHtml}
                     </div>
-                    
                     <div class="field-group">
                         <div class="field-label">Apple ID</div>
                         <div class="input-wrapper">
@@ -336,7 +326,6 @@
                             <button class="btn-copy" onclick="copyText('${item.username}')">复制</button>
                         </div>
                     </div>
-
                     <div class="field-group">
                         <div class="field-label">密码 / Password</div>
                         <div class="input-wrapper">
@@ -344,21 +333,17 @@
                             <button class="btn-copy" onclick="copyText('${item.password}')">复制</button>
                         </div>
                     </div>
-                    
                     ${item.checkTime ? `<div style="text-align:right; font-size:11px; color:#ccc; margin-top:10px;">数据来源: ${item.checkTime}</div>` : ''}
                 </div>`;
             });
             container.innerHTML = html;
         }
 
-        // 📋 复制功能 + Toast 提示
         function copyText(text) {
             if (!text) return;
-            // 现代复制 API
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(text).then(() => showToast());
             } else {
-                // 备用方案
                 let textArea = document.createElement("textarea");
                 textArea.value = text;
                 textArea.style.position = "fixed"; textArea.style.left = "-9999px";
@@ -376,7 +361,6 @@
             setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        // 🖼️ 图片放大
         function openModal(img) { 
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImg');
@@ -384,8 +368,6 @@
             modal.classList.add('active');
         }
         function closeModal() { document.getElementById('imageModal').classList.remove('active'); }
-        
-        // 自动刷新
         setInterval(initData, 60000); 
     </script>
 </body>
