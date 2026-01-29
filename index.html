@@ -19,7 +19,6 @@
     <style>
         :root {
             --primary: #0071e3;
-            --primary-hover: #0077ed;
             --bg-color: #f5f5f7;
             --card-bg: #ffffff;
             --text-main: #1d1d1f;
@@ -28,7 +27,6 @@
             --success: #34c759;
             --radius: 16px;
             --shadow: 0 4px 20px rgba(0,0,0,0.04);
-            --shadow-hover: 0 8px 30px rgba(0,0,0,0.08);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -37,217 +35,228 @@
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             -webkit-font-smoothing: antialiased;
             min-height: 100vh;
         }
 
         .nav-bg {
             position: sticky; top: 0; z-index: 90;
-            background: rgba(245, 245, 247, 0.8);
+            background: rgba(245, 245, 247, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(0,0,0,0.05);
-            padding: 15px 0;
-            text-align: center;
+            padding: 15px 0; text-align: center;
         }
-        .nav-title { font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .nav-title { font-weight: 700; font-size: 18px; }
 
         .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px 60px 16px; }
 
+        /* ⚠️ 警示栏 */
         .alert-card {
-            background: #fff;
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
+            background: #fff; border-radius: var(--radius); padding: 20px;
+            box-shadow: var(--shadow); margin-bottom: 25px;
             border-left: 5px solid var(--danger);
         }
-        .alert-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--danger); display: flex; align-items: center; gap: 8px; }
-        .alert-grid { display: grid; gap: 12px; }
-        .alert-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #333; background: #fff2f2; padding: 10px 14px; border-radius: 8px; }
-        .alert-item.safe { background: #f0fdf4; color: #166534; }
-
-        /* 🖼️ 教程区域样式 */
-        .tutorial-area { margin-bottom: 40px; background: #fff; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
-        .tutorial-img { 
-            width: 100%; border-radius: 12px; 
-            border: 1px solid #eee; cursor: zoom-in; 
-            transition: transform 0.3s ease;
+        .alert-grid { display: grid; gap: 10px; margin-top: 10px; }
+        .alert-item { 
+            display: flex; align-items: center; gap: 10px; font-size: 13px; color: #333; 
+            background: #fff5f5; padding: 8px 12px; border-radius: 8px; font-weight: 500;
         }
-        .tutorial-img:hover { transform: scale(1.01); }
+        .alert-item.safe { background: #f2fcf5; color: #14532d; }
 
-        .section-header {
-            display: flex; justify-content: space-between; align-items: end;
-            margin-bottom: 20px; padding: 0 5px;
-        }
-        .section-title { font-size: 24px; font-weight: 700; }
+        /* 📖 教程区 */
+        .tutorial-area { margin-bottom: 30px; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+        .tutorial-header { padding: 15px 20px; font-weight: 600; font-size: 14px; background: #fafafa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .tutorial-content { padding: 15px; display: block; }
+        .tutorial-img { width: 100%; border-radius: 8px; border: 1px solid #eee; cursor: zoom-in; margin-bottom: 15px; }
+
+        /* 🌍 卡片区 */
+        .section-header { display: flex; justify-content: space-between; align-items: end; margin-bottom: 15px; padding: 0 5px; }
+        .section-title { font-size: 20px; font-weight: 700; }
         .update-badge { font-size: 12px; background: #e5e5ea; padding: 4px 10px; border-radius: 20px; color: var(--text-sub); }
 
-        .grid-container {
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 20px;
-        }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
 
         .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.02);
+            background: var(--card-bg); border-radius: var(--radius); padding: 20px;
+            box-shadow: var(--shadow); position: relative; border: 1px solid rgba(0,0,0,0.02);
         }
-        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
-
-        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .region-badge { 
-            background: linear-gradient(135deg, #007aff, #0056b3); 
-            color: #fff; padding: 6px 14px; border-radius: 20px; 
-            font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,113,227,0.3);
-        }
-        .status-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
-        .status-error .dot { background: var(--danger); }
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .region-badge { background: linear-gradient(135deg, #007aff, #0056b3); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .status-badge { font-size: 12px; color: var(--success); font-weight: 500; }
         .status-error { color: var(--danger); }
 
-        .field-group { margin-bottom: 16px; }
-        .field-label { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; margin-left: 4px; }
-        .input-wrapper {
-            background: #f5f5f7; border-radius: 12px;
-            display: flex; align-items: center; padding: 4px;
-            border: 1px solid transparent; transition: 0.2s;
-        }
-        .input-wrapper:focus-within { border-color: var(--primary); background: #fff; }
+        .field-group { margin-bottom: 12px; }
+        .field-label { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; font-weight: 500; }
+        .input-wrapper { background: #f5f5f7; border-radius: 10px; display: flex; align-items: center; padding: 4px; border: 1px solid transparent; }
+        .account-input { flex: 1; border: none; background: transparent; padding: 10px; font-family: 'SF Mono', monospace; font-size: 13px; outline: none; width: 100%; }
         
-        .account-input {
-            flex: 1; border: none; background: transparent;
-            padding: 12px; font-family: 'SF Mono', 'Menlo', monospace;
-            font-size: 14px; color: #333; outline: none;
-            width: 100%;
-        }
-        
+        /* 按钮样式 */
         .btn-copy {
-            background: #fff; color: var(--text-main);
-            border: 1px solid rgba(0,0,0,0.1);
-            padding: 8px 16px; border-radius: 8px;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            background: #fff; color: #1d1d1f; border: 1px solid #e5e5ea;
+            padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
         }
-        .btn-copy:active { transform: scale(0.95); background: #f0f0f0; }
+        /* 账号按钮改为蓝色，暗示需要确认 */
+        .btn-copy.account-btn { color: #0071e3; border-color: #cce5ff; background: #f0f7ff; }
+        /* 密码按钮改为红色，暗示高危 */
+        .btn-copy.danger { color: #d70015; background: #fff5f5; border-color: #ffcccc; }
 
-        .lock-overlay {
+        /* 🟢 弹窗通用样式 */
+        .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            z-index: 999; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center;
-            animation: fadeIn 0.3s ease;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+            z-index: 3000; display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s;
         }
-        .lock-box {
-            background: #fff; padding: 40px; border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 360px;
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-box {
+            background: #fff; width: 85%; max-width: 320px;
+            border-radius: 20px; padding: 25px; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .lock-input {
-            width: 100%; padding: 16px; margin: 24px 0;
-            border: 1px solid #d2d2d7; border-radius: 14px;
-            font-size: 20px; text-align: center; letter-spacing: 4px; outline: none;
-            transition: 0.3s;
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        
+        .modal-title { font-size: 18px; font-weight: 800; color: #1d1d1f; margin-bottom: 10px; }
+        .modal-desc { font-size: 14px; color: #424245; margin-bottom: 20px; line-height: 1.5; }
+        
+        /* 按钮组 */
+        .modal-options { display: grid; gap: 12px; }
+        .modal-btn {
+            padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none;
+            position: relative; overflow: hidden; transition: 0.2s; width: 100%;
         }
-        .lock-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0,113,227,0.15); }
-        .lock-btn {
-            width: 100%; padding: 16px; background: var(--primary);
-            color: #fff; border: none; border-radius: 14px;
-            font-size: 16px; font-weight: 600; cursor: pointer;
-            transition: 0.3s;
-        }
-        .lock-btn:hover { background: var(--primary-hover); }
+        
+        /* 样式变体 */
+        .btn-primary { background: #0071e3; color: #fff; box-shadow: 0 4px 12px rgba(0,113,227,0.3); }
+        .btn-secondary { background: #f5f5f7; color: #1d1d1f; border: 1px solid #d1d1d6; }
+        .btn-danger { background: #fff5f5; color: #d70015; border: 1px solid #ffcccc; }
 
+        /* 错误动画 */
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
+
+        /* 锁屏 & Toast */
+        .lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .lock-box { width: 80%; max-width: 300px; text-align: center; }
+        .lock-input { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #ddd; border-radius: 10px; text-align: center; font-size: 18px; }
+        .lock-btn { width: 100%; padding: 12px; background: #000; color: #fff; border-radius: 10px; border:none; cursor:pointer; }
+        
         .toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
-            background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px;
-            border-radius: 30px; font-size: 14px; font-weight: 500;
-            opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 2000; display: flex; align-items: center; gap: 8px;
-            backdrop-filter: blur(10px);
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(0,0,0,0.85); color: #fff; padding: 10px 20px;
+            border-radius: 50px; font-size: 13px; font-weight: 500;
+            opacity: 0; pointer-events: none; transition: 0.3s; z-index: 4000;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: #ff3b30; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
-        .modal.active { display: flex; opacity: 1; }
-        .modal img { max-width: 95%; max-height: 90%; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s; }
-        .modal.active img { transform: scale(1); }
+        .img-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        .img-modal img { max-width: 95%; max-height: 80vh; border-radius: 8px; }
 
     </style>
 </head>
 
 <body>
-    <div id="toast" class="toast">✅ 复制成功</div>
+    <div id="toast" class="toast">✅ 已复制</div>
 
-    <div id="lock-screen" class="lock-overlay">
-        <div class="lock-box">
-            <div style="font-size:50px;margin-bottom:15px;">🔒</div>
-            <h2 style="margin:0;font-size:22px;">访问受限</h2>
-            <p style="color:#86868b;font-size:14px;margin-top:8px;">请输入密码访问共享资源</p>
-            <input type="password" id="password-input" class="lock-input" placeholder="••••••">
-            <button class="lock-btn" onclick="checkPassword()">解锁进入</button>
-            <div id="error-msg" style="color:#ff3b30;font-size:13px;margin-top:15px;display:none;font-weight:600;">⚠️ 密码错误，请重试</div>
+    <div id="accountModal" class="modal-overlay">
+        <div class="modal-box">
+            <div style="font-size:40px;margin-bottom:10px;">📍</div>
+            <div class="modal-title">位置确认</div>
+            <div class="modal-desc">
+                请确认您当前是在 <strong>App Store (应用商店)</strong> 的界面，而不是在设置里。
+                <br><br><span style="color:#ff3b30;font-size:12px;">(如果在设置里登录会造成锁机)</span>
+            </div>
+            <div class="modal-options">
+                <button class="modal-btn btn-primary" onclick="confirmAccountCopy()">
+                    我已在 App Store，继续复制
+                </button>
+                <button class="modal-btn btn-secondary" onclick="closeModal('accountModal')">
+                    点错了，我去检查一下
+                </button>
+            </div>
         </div>
     </div>
 
-    <div id="main-content" style="display:none; animation: fadeIn 0.6s ease;">
-        <div class="nav-bg">
-            <div class="nav-title">🍎 Apple ID 共享中心</div>
+    <div id="passwordModal" class="modal-overlay">
+        <div class="modal-box" id="quizBox">
+            <div style="font-size:40px;margin-bottom:10px;">⚠️</div>
+            <div class="modal-title">最后一步</div>
+            <div class="modal-desc">
+                输入密码后，弹出 <strong>"Apple ID 安全"</strong>应该点哪个？
+            </div>
+            <div class="modal-options">
+                <button class="modal-btn btn-primary" onclick="wrongAnswer()">
+                    继续 (Continue)
+                </button>
+                
+                <button class="modal-btn btn-secondary" onclick="correctAnswer()">
+                    其他选项 / 不升级
+                </button>
+            </div>
+            <div style="font-size:12px; color:#999; margin-top:15px;">
+                答对才能复制密码
+            </div>
         </div>
+    </div>
+
+    <div id="lock-screen" class="lock-overlay">
+        <div class="lock-box">
+            <div style="font-size:40px;margin-bottom:10px;"></div>
+            <h3>Apple ID 共享</h3>
+            <input type="password" id="password-input" class="lock-input" placeholder="输入密码">
+            <button class="lock-btn" onclick="checkPassword()">解锁</button>
+            <div id="error-msg" style="color:red;font-size:12px;margin-top:10px;display:none;">密码错误</div>
+        </div>
+    </div>
+
+    <div id="main-content" style="display:none;">
+        <div class="nav-bg"><div class="nav-title">🍎 共享中心</div></div>
 
         <div class="container">
             <div class="alert-card">
-                <div class="alert-title";font-size:30px>⚠️ 必读：防锁机指南</div>
+                <div style="font-weight:700; color:var(--danger); margin-bottom:10px;">⚠️ 必读：严禁操作</div>
                 <div class="alert-grid">
-                    <div class="alert-item">❌ <strong>严禁在【设置】登录 iCloud</strong>（极易锁机！）</div>
-                    <div class="alert-item">❌ <strong>严禁开启双重认证绑定手机号</strong></div>
-                    <div class="alert-item safe">✅ <strong>请仅在【App Store】商店登录下载</strong></div>
-                    <div class="alert-item safe">✅ 用完请及时退出，方便他人使用</div>
+                    <div class="alert-item">❌ <strong>严禁在【设置】登录 iCloud</strong></div>
+                    <div class="alert-item">❌ <strong>禁止点击【继续】开启双重认证</strong></div>
+                    <div class="alert-item safe">✅ <strong>请点击【其他选项】->【不升级】</strong></div>
                 </div>
             </div>
 
             <div class="tutorial-area">
-                <div style="margin-bottom:20px;">
+                <div class="tutorial-header" onclick="toggleTutorial()">
+                    <span>📖 详细教程 & 救砖指南</span>
+                    <span style="color:#0071e3;">点击展开</span>
+                </div>
+                <div id="tutorial-body" class="tutorial-content">
+                                    <div style="margin-bottom:20px;">
                     <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">1.登陆步骤下图必看（不看别登陆）</div>
                     <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">2.你看两眼图片行吗（避免双重认证）</div>
                     <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">3.双重验证这里解决！！！</div>
                     <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">4.看完解决99%的问题！！</div>
                     <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)" onerror="this.style.display='none'">
                 </div>
-
-                <div style="padding-top:20px; border-top:1px dashed #e5e5ea;">
-                    <div style="font-weight:700; color:#ff3b30; margin-bottom:6px;font-size:30px">如果更新或下载失败？</div>
-                    <div style="font-size:30px; color:#333; margin-bottom:12px; line-height:1.6;">
-                        直接卸载 App<br>重新下载就是最新版！！！
+                    <img src="./guide.jpg" class="tutorial-img" onclick="openImage(this)">
+                    <div style="background:#f9f9fa; padding:15px; border-radius:10px; border:1px dashed #ccc;">
+                        <div style="color:#ff3b30; font-weight:700; font-size:13px; margin-bottom:5px;">⚠️ 提示 "账户被禁用" ？</div>
+                        <div style="font-size:12px;">这是因为你的 App 是旧版本，请卸载 App 重新下载即可。</div>
+                        <img src="./xiezai.jpg" style="width:100%;margin-top:10px;border-radius:6px;" onclick="openImage(this)">
                     </div>
-                    <img src="./xiezai.jpg" class="tutorial-img" onclick="openModal(this)" onerror="this.style.display='none'">
                 </div>
             </div>
 
             <div class="section-header">
-                <div class="section-title">🌍 实时账号库</div>
-                <div id="status-tip" class="update-badge">⏳ 连接数据中...</div>
+                <div class="section-title">🌍 账号列表</div>
+                <div id="status-tip" class="update-badge">连接中...</div>
             </div>
 
             <div id="app-fan" class="grid-container"></div>
-
-            <div style="text-align:center; margin-top:50px; color:#ccc; font-size:12px;">
-                Designed for Efficiency · 严禁用于商业用途
-            </div>
         </div>
     </div>
 
-    <div id="imageModal" class="modal" onclick="closeModal()">
+    <div id="imageModal" class="img-modal" onclick="this.style.display='none'">
         <img id="modalImg">
     </div>
 
@@ -260,21 +269,17 @@
             HOURS: 12 
         };
         
+        let tempText = ''; // 临时存储
+
+        // 🔐 锁屏逻辑
         function checkPassword() {
-            var input = document.getElementById('password-input').value;
-            if (input.trim() === CONFIG.PASS_MAIN) {
-                document.getElementById('lock-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('lock-screen').style.display='none';
-                    document.getElementById('main-content').style.display='block';
-                }, 300);
+            if (document.getElementById('password-input').value.trim() === CONFIG.PASS_MAIN) {
+                document.getElementById('lock-screen').style.display='none';
+                document.getElementById('main-content').style.display='block';
                 localStorage.setItem('unlock_ts', Date.now());
                 initData();
             } else {
                 document.getElementById('error-msg').style.display='block';
-                const box = document.querySelector('.lock-box');
-                box.style.transform = 'translateX(10px)';
-                setTimeout(() => box.style.transform = 'translateX(0)', 100);
             }
         }
 
@@ -287,23 +292,18 @@
             }
         };
 
+        // 📊 数据加载
         async function initData() {
             const tip = document.getElementById('status-tip');
             const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
             try {
-                const response = await fetch(`${baseUrl}${CONFIG.FILE}?t=${Date.now()}`);
-                const json = await response.json();
-
-                if (json.data && json.data.length > 0) {
-                    const latestTime = json.updated_at ? new Date(json.updated_at).toLocaleTimeString() : '刚刚';
-                    tip.innerText = `🔄 更新于 ${latestTime} · ${json.data.length}个在线`;
-                    tip.style.background = '#e3f2fd'; tip.style.color = '#007aff';
+                const res = await fetch(`${baseUrl}${CONFIG.FILE}?t=${Date.now()}`);
+                const json = await res.json();
+                if (json.data) {
+                    tip.innerText = `在线: ${json.data.length}`;
                     renderCards('app-fan', json.data);
                 }
-            } catch (err) {
-                tip.innerText = "❌ 同步失败，请刷新";
-                tip.style.background = '#ffe5e5'; tip.style.color = '#d70015';
-            }
+            } catch (err) { tip.innerText = "同步失败"; }
         }
 
         function renderCards(targetId, data) {
@@ -311,67 +311,93 @@
             let html = '';
             data.forEach((item, index) => {
                 const isNormal = item.status === "正常";
-                const statusHtml = isNormal 
-                    ? `<span class="status-badge" style="color:var(--success)"><span class="dot"></span>正常</span>`
-                    : `<span class="status-badge status-error"><span class="dot"></span>${item.status}</span>`;
-                const delay = index * 0.05; 
+                const statusHtml = isNormal ? `<span class="status-badge">● 正常</span>` : `<span class="status-badge status-error">● ${item.status}</span>`;
                 
                 html += `
-                <div class="card" style="animation: fadeIn 0.5s ease backwards ${delay}s">
-                    <div class="card-top">
-                        <span class="region-badge">${item.region||'全球'}</span>
-                        ${statusHtml}
-                    </div>
+                <div class="card" style="animation: fadeIn 0.5s ease backwards ${index * 0.05}s">
+                    <div class="card-top"><span class="region-badge">${item.region||'全球'}</span>${statusHtml}</div>
                     <div class="field-group">
-                        <div class="field-label">Apple ID</div>
+                        <div class="field-label">账号 (需确认位置)</div>
                         <div class="input-wrapper">
-                            <input class="account-input" value="${item.username}" readonly onclick="this.select()">
-                            <button class="btn-copy" onclick="copyText('${item.username}')">复制</button>
+                            <input class="account-input" value="${item.username}" readonly onclick="startAccountFlow('${item.username}')">
+                            <button class="btn-copy account-btn" onclick="startAccountFlow('${item.username}')">复制</button>
                         </div>
                     </div>
                     <div class="field-group">
-                        <div class="field-label">密码 / Password</div>
+                        <div class="field-label">密码 (需答题验证)</div>
                         <div class="input-wrapper">
-                            <input class="account-input" value="${item.password}" readonly onclick="this.select()">
-                            <button class="btn-copy" onclick="copyText('${item.password}')">复制</button>
+                            <input class="account-input" value="${item.password}" readonly onclick="startPasswordFlow('${item.password}')">
+                            <button class="btn-copy danger" onclick="startPasswordFlow('${item.password}')">复制</button>
                         </div>
                     </div>
-                    ${item.checkTime ? `<div style="text-align:right; font-size:11px; color:#ccc; margin-top:10px;">数据来源: ${item.checkTime}</div>` : ''}
                 </div>`;
             });
             container.innerHTML = html;
         }
 
-        function copyText(text) {
+        // =======================
+        // 🛑 核心拦截逻辑 (双重防御)
+        // =======================
+
+        // 1. 账号复制流程：位置确认
+        function startAccountFlow(text) {
+            tempText = text;
+            document.getElementById('accountModal').classList.add('active');
+        }
+
+        function confirmAccountCopy() {
+            closeModal('accountModal');
+            performCopy(tempText);
+            showToast('✅ 账号已复制，请去 App Store 登录');
+        }
+
+        // 2. 密码复制流程：防坑测试
+        function startPasswordFlow(text) {
+            tempText = text;
+            document.getElementById('passwordModal').classList.add('active');
+        }
+
+        function wrongAnswer() {
+            const box = document.getElementById('quizBox');
+            box.classList.remove('shake');
+            void box.offsetWidth; 
+            box.classList.add('shake');
+            showToast('❌ 选错了！点[继续]会锁机！', true);
+        }
+
+        function correctAnswer() {
+            closeModal('passwordModal');
+            performCopy(tempText);
+            showToast('✅ 回答正确！密码已复制');
+        }
+
+        // 通用工具
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function performCopy(text) {
             if (!text) return;
             if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text).then(() => showToast());
+                navigator.clipboard.writeText(text);
             } else {
-                let textArea = document.createElement("textarea");
-                textArea.value = text;
-                textArea.style.position = "fixed"; textArea.style.left = "-9999px";
-                document.body.appendChild(textArea);
-                textArea.focus(); textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showToast();
+                let ta = document.createElement("textarea");
+                ta.value = text; ta.style.position="fixed"; ta.style.left="-999px";
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta);
             }
         }
 
-        function showToast() {
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = isError ? 'toast show error' : 'toast show';
+            setTimeout(() => t.className = 'toast', 2500);
         }
 
-        function openModal(img) { 
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImg');
-            modalImg.src = img.src; 
-            modal.classList.add('active');
-        }
-        function closeModal() { document.getElementById('imageModal').classList.remove('active'); }
+        function openImage(img) { document.getElementById('modalImg').src = img.src; document.getElementById('imageModal').style.display = 'flex'; }
+        function toggleTutorial() { const b = document.getElementById('tutorial-body'); b.style.display = b.style.display==='none'?'block':'none'; }
+        
         setInterval(initData, 60000); 
     </script>
+    <style>@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }</style>
 </body>
 </html>
