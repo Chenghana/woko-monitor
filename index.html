@@ -97,9 +97,7 @@
             background: #fff; color: #1d1d1f; border: 1px solid #e5e5ea;
             padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
         }
-        /* 账号按钮改为蓝色，暗示需要确认 */
         .btn-copy.account-btn { color: #0071e3; border-color: #cce5ff; background: #f0f7ff; }
-        /* 密码按钮改为红色，暗示高危 */
         .btn-copy.danger { color: #d70015; background: #fff5f5; border-color: #ffcccc; }
 
         /* 🟢 弹窗通用样式 */
@@ -121,28 +119,19 @@
         .modal-title { font-size: 18px; font-weight: 800; color: #1d1d1f; margin-bottom: 10px; }
         .modal-desc { font-size: 14px; color: #424245; margin-bottom: 20px; line-height: 1.5; }
         
-        /* 按钮组 */
         .modal-options { display: grid; gap: 12px; }
         .modal-btn {
             padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none;
             position: relative; overflow: hidden; transition: 0.2s; width: 100%;
         }
         
-        /* 样式变体 */
         .btn-primary { background: #0071e3; color: #fff; box-shadow: 0 4px 12px rgba(0,113,227,0.3); }
         .btn-secondary { background: #f5f5f7; color: #1d1d1f; border: 1px solid #d1d1d6; }
-        .btn-danger { background: #fff5f5; color: #d70015; border: 1px solid #ffcccc; }
-
-        /* 错误动画 */
+        
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
 
-        /* 锁屏 & Toast */
-        .lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .lock-box { width: 80%; max-width: 300px; text-align: center; }
-        .lock-input { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #ddd; border-radius: 10px; text-align: center; font-size: 18px; }
-        .lock-btn { width: 100%; padding: 12px; background: #000; color: #fff; border-radius: 10px; border:none; cursor:pointer; }
-        
+        /* Toast */
         .toast {
             position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
             background: rgba(0,0,0,0.85); color: #fff; padding: 10px 20px;
@@ -167,7 +156,7 @@
             <div class="modal-title">位置确认</div>
             <div class="modal-desc">
                 请确认您当前是在 <strong>App Store (应用商店)</strong> 的界面，而不是在设置里。
-                <br><br><span style="color:#ff3b30;font-size:12px;">(如果在设置里登录会造成锁机)</span>
+                <br><br><span style="color:#ff3b30;font-size:12px;">如果在设置里登录会造成锁机！！！</span>
             </div>
             <div class="modal-options">
                 <button class="modal-btn btn-primary" onclick="confirmAccountCopy()">
@@ -185,34 +174,23 @@
             <div style="font-size:40px;margin-bottom:10px;">⚠️</div>
             <div class="modal-title">最后一步</div>
             <div class="modal-desc">
-                输入密码后，弹出 <strong>"Apple ID 安全"</strong>应该点哪个？
+                输入密码后，如果弹出 <strong>"Apple ID 安全"</strong> 应该点哪个？
             </div>
             <div class="modal-options">
                 <button class="modal-btn btn-primary" onclick="wrongAnswer()">
                     继续 (Continue)
                 </button>
-                
                 <button class="modal-btn btn-secondary" onclick="correctAnswer()">
-                    其他选项 / 不升级
+                    其他选项，不升级
                 </button>
             </div>
-            <div style="font-size:12px; color:#999; margin-top:15px;">
+            <div style="font-size:12px; color:#000; margin-top:15px;">
                 答对才能复制密码
             </div>
         </div>
     </div>
 
-    <div id="lock-screen" class="lock-overlay">
-        <div class="lock-box">
-            <div style="font-size:40px;margin-bottom:10px;"></div>
-            <h3>Apple ID 共享</h3>
-            <input type="password" id="password-input" class="lock-input" placeholder="输入密码">
-            <button class="lock-btn" onclick="checkPassword()">解锁</button>
-            <div id="error-msg" style="color:red;font-size:12px;margin-top:10px;display:none;">密码错误</div>
-        </div>
-    </div>
-
-    <div id="main-content" style="display:none;">
+    <div id="main-content">
         <div class="nav-bg"><div class="nav-title">🍎 共享中心</div></div>
 
         <div class="container">
@@ -231,14 +209,14 @@
                     <span style="color:#0071e3;">点击展开</span>
                 </div>
                 <div id="tutorial-body" class="tutorial-content">
-                                    <div style="margin-bottom:20px;">
-                    <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">1.登陆步骤下图必看（不看别登陆）</div>
-                    <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">2.你看两眼图片行吗（避免双重认证）</div>
-                    <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">3.双重验证这里解决！！！</div>
-                    <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">4.看完解决99%的问题！！</div>
-                    <img src="./guide.jpg" class="tutorial-img" onclick="openModal(this)" onerror="this.style.display='none'">
-                </div>
-                    <img src="./guide.jpg" class="tutorial-img" onclick="openImage(this)">
+                    <div style="margin-bottom:20px;">
+                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">1.登陆步骤下图必看（不看别登陆）</div>
+                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">2.你看两眼图片行吗（避免双重认证）</div>
+                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">3.双重验证这里解决！！！</div>
+                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">4.看完解决99%的问题！！</div>
+                        <img src="./guide.jpg" class="tutorial-img" onclick="openImage(this)" onerror="this.style.display='none'">
+                    </div>
+                    
                     <div style="background:#f9f9fa; padding:15px; border-radius:10px; border:1px dashed #ccc;">
                         <div style="color:#ff3b30; font-weight:700; font-size:13px; margin-bottom:5px;">⚠️ 提示 "账户被禁用" ？</div>
                         <div style="font-size:12px;">这是因为你的 App 是旧版本，请卸载 App 重新下载即可。</div>
@@ -264,35 +242,16 @@
         const CONFIG = { 
             USER: 'ChengHana', 
             GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', 
-            FILE: 'fan.json', 
-            PASS_MAIN: 'ad123', 
-            HOURS: 12 
+            FILE: 'fan.json'
         };
         
-        let tempText = ''; // 临时存储
+        let tempText = ''; 
 
-        // 🔐 锁屏逻辑
-        function checkPassword() {
-            if (document.getElementById('password-input').value.trim() === CONFIG.PASS_MAIN) {
-                document.getElementById('lock-screen').style.display='none';
-                document.getElementById('main-content').style.display='block';
-                localStorage.setItem('unlock_ts', Date.now());
-                initData();
-            } else {
-                document.getElementById('error-msg').style.display='block';
-            }
-        }
-
+        // 页面加载自动获取数据
         window.onload = function() {
-            const ts = localStorage.getItem('unlock_ts');
-            if (ts && (Date.now() - ts) < CONFIG.HOURS * 3600000) {
-                document.getElementById('lock-screen').style.display='none';
-                document.getElementById('main-content').style.display='block';
-                initData();
-            }
+            initData();
         };
 
-        // 📊 数据加载
         async function initData() {
             const tip = document.getElementById('status-tip');
             const baseUrl = `https://gist.githubusercontent.com/${CONFIG.USER}/${CONFIG.GIST}/raw/`;
@@ -300,7 +259,8 @@
                 const res = await fetch(`${baseUrl}${CONFIG.FILE}?t=${Date.now()}`);
                 const json = await res.json();
                 if (json.data) {
-                    tip.innerText = `在线: ${json.data.length}`;
+                    const time = json.updated_at ? new Date(json.updated_at).toLocaleTimeString() : '刚刚';
+                    tip.innerText = `🔄 ${time} · ${json.data.length}个在线`;
                     renderCards('app-fan', json.data);
                 }
             } catch (err) { tip.innerText = "同步失败"; }
@@ -335,11 +295,6 @@
             container.innerHTML = html;
         }
 
-        // =======================
-        // 🛑 核心拦截逻辑 (双重防御)
-        // =======================
-
-        // 1. 账号复制流程：位置确认
         function startAccountFlow(text) {
             tempText = text;
             document.getElementById('accountModal').classList.add('active');
@@ -351,7 +306,6 @@
             showToast('✅ 账号已复制，请去 App Store 登录');
         }
 
-        // 2. 密码复制流程：防坑测试
         function startPasswordFlow(text) {
             tempText = text;
             document.getElementById('passwordModal').classList.add('active');
@@ -371,7 +325,6 @@
             showToast('✅ 回答正确！密码已复制');
         }
 
-        // 通用工具
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function performCopy(text) {
