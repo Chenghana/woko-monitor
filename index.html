@@ -25,6 +25,7 @@
             --text-sub: #86868b;
             --danger: #ff3b30;
             --success: #34c759;
+            --gold: #BF953F; /* VIP金色 */
             --radius: 16px;
             --shadow: 0 4px 20px rgba(0,0,0,0.04);
         }
@@ -33,30 +34,37 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0; padding: 0;
-            -webkit-font-smoothing: antialiased;
-            min-height: 100vh;
+            background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 0; -webkit-font-smoothing: antialiased; min-height: 100vh;
+            padding-bottom: 90px; /* 给悬浮栏留位置 */
         }
 
         .nav-bg {
             position: sticky; top: 0; z-index: 90;
-            background: rgba(245, 245, 247, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            padding: 15px 0; text-align: center;
+            background: rgba(245, 245, 247, 0.95); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.05); padding: 15px 0; text-align: center;
         }
         .nav-title { font-weight: 700; font-size: 18px; }
 
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px 60px 16px; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px 0 16px; }
+
+        /* 👑 顶部销售横幅 (新) */
+        .sales-banner {
+            background: linear-gradient(90deg, #111, #333);
+            color: #FCE38A; padding: 12px; border-radius: var(--radius);
+            margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer;
+        }
+        .sales-text { font-size: 14px; font-weight: 700; }
+        .sales-btn {
+            background: #FCE38A; color: #333; padding: 6px 12px;
+            border-radius: 20px; font-size: 12px; font-weight: 800; border: none;
+        }
 
         /* ⚠️ 警示栏 */
         .alert-card {
             background: #fff; border-radius: var(--radius); padding: 20px;
-            box-shadow: var(--shadow); margin-bottom: 25px;
-            border-left: 5px solid var(--danger);
+            box-shadow: var(--shadow); margin-bottom: 25px; border-left: 5px solid var(--danger);
         }
         .alert-grid { display: grid; gap: 10px; margin-top: 10px; }
         .alert-item { 
@@ -78,6 +86,7 @@
 
         .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
 
+        /* 普通卡片 */
         .card {
             background: var(--card-bg); border-radius: var(--radius); padding: 20px;
             box-shadow: var(--shadow); position: relative; border: 1px solid rgba(0,0,0,0.02);
@@ -87,68 +96,100 @@
         .status-badge { font-size: 12px; color: var(--success); font-weight: 500; }
         .status-error { color: var(--danger); }
 
+        /* 👑 VIP 独享卡片 (引流专用) */
+        .card.vip-card {
+            background: linear-gradient(145deg, #2b2b2b, #1a1a1a);
+            border: 1px solid #ffd700; color: #fff; position: relative; overflow: hidden;
+        }
+        .card.vip-card::after {
+            content: "推荐"; position: absolute; top: 0; right: 0;
+            background: #ffd700; color: #000; font-size: 10px; padding: 2px 8px;
+            border-bottom-left-radius: 8px; font-weight: bold;
+        }
+        .vip-title { font-size: 18px; font-weight: 800; color: #FCE38A; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .vip-desc { font-size: 13px; color: #ccc; margin-bottom: 15px; line-height: 1.6; }
+        .vip-features { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
+        .vip-tag { font-size: 10px; background: rgba(252, 227, 138, 0.2); color: #FCE38A; padding: 2px 6px; border-radius: 4px; }
+        .vip-btn {
+            width: 100%; padding: 10px; background: linear-gradient(90deg, #FCE38A, #F38181);
+            color: #333; border: none; border-radius: 8px; font-weight: 800; font-size: 14px;
+            cursor: pointer; animation: pulse 2s infinite;
+        }
+
         .field-group { margin-bottom: 12px; }
         .field-label { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; font-weight: 500; }
         .input-wrapper { background: #f5f5f7; border-radius: 10px; display: flex; align-items: center; padding: 4px; border: 1px solid transparent; }
         .account-input { flex: 1; border: none; background: transparent; padding: 10px; font-family: 'SF Mono', monospace; font-size: 13px; outline: none; width: 100%; }
         
-        /* 按钮样式 */
-        .btn-copy {
-            background: #fff; color: #1d1d1f; border: 1px solid #e5e5ea;
-            padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
-        }
+        .btn-copy { background: #fff; color: #1d1d1f; border: 1px solid #e5e5ea; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .btn-copy.account-btn { color: #0071e3; border-color: #cce5ff; background: #f0f7ff; }
         .btn-copy.danger { color: #d70015; background: #fff5f5; border-color: #ffcccc; }
 
-        /* 🟢 弹窗通用样式 */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
-            z-index: 3000; display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.2s;
+        /* 🟢 底部悬浮引流栏 */
+        .float-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            border-radius: 50px; padding: 5px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 2000; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;
         }
+        .float-text { color: #fff; font-size: 13px; font-weight: 600; margin-left: 15px; }
+        .float-text span { color: #FCE38A; }
+        .float-btn {
+            background: #FCE38A; color: #000; border: none;
+            padding: 10px 20px; border-radius: 40px; font-weight: 800; font-size: 13px; cursor: pointer;
+        }
+
+        /* 弹窗通用样式 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-box {
-            background: #fff; width: 85%; max-width: 320px;
-            border-radius: 20px; padding: 25px; text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        .modal-box { background: #fff; width: 85%; max-width: 320px; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: scale(1); }
         
         .modal-title { font-size: 18px; font-weight: 800; color: #1d1d1f; margin-bottom: 10px; }
         .modal-desc { font-size: 14px; color: #424245; margin-bottom: 20px; line-height: 1.5; }
-        
         .modal-options { display: grid; gap: 12px; }
-        .modal-btn {
-            padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none;
-            position: relative; overflow: hidden; transition: 0.2s; width: 100%;
-        }
+        .modal-btn { padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; position: relative; overflow: hidden; transition: 0.2s; width: 100%; }
         
         .btn-primary { background: #0071e3; color: #fff; box-shadow: 0 4px 12px rgba(0,113,227,0.3); }
         .btn-secondary { background: #f5f5f7; color: #1d1d1f; border: 1px solid #d1d1d6; }
-        
+        .btn-vip { background: linear-gradient(90deg, #FCE38A, #F38181); color: #333; border: none; margin-top: 5px; font-weight: 800; }
+
+        /* 联系方式弹窗样式 */
+        .contact-box { text-align: left; }
+        .contact-row { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; }
+        .contact-info { display: flex; flex-direction: column; }
+        .contact-label { font-size: 12px; color: #999; }
+        .contact-val { font-size: 16px; font-weight: 700; color: #333; margin-top: 2px; }
+        .contact-action { background: #0071e3; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .contact-action.qq { background: #12B7F5; }
+        .contact-action.wx { background: #07C160; }
+
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
 
-        /* Toast */
-        .toast {
-            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
-            background: rgba(0,0,0,0.85); color: #fff; padding: 10px 20px;
-            border-radius: 50px; font-size: 13px; font-weight: 500;
-            opacity: 0; pointer-events: none; transition: 0.3s; z-index: 4000;
-        }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 10px 20px; border-radius: 50px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 4000; }
+        .toast.show { opacity: 1; }
         .toast.error { background: #ff3b30; }
 
         .img-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
         .img-modal img { max-width: 95%; max-height: 80vh; border-radius: 8px; }
 
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     </style>
 </head>
 
 <body>
     <div id="toast" class="toast">✅ 已复制</div>
+
+    <div class="container" style="padding-bottom: 0;">
+        <div class="sales-banner" onclick="openContactModal()">
+            <div class="sales-text">🔥 共享号频繁被顶？—————10元一个（定制地区）</div>
+            <button class="sales-btn">点击购买独享ID ></button>
+        </div>
+    </div>
 
     <div id="accountModal" class="modal-overlay">
         <div class="modal-box">
@@ -173,7 +214,7 @@
         <div class="modal-box" id="quizBox">
             <div style="font-size:40px;margin-bottom:10px;">⚠️</div>
             <div class="modal-title">最后一步</div>
-            <div class="modal-desc;font-size:30px">
+            <div class="modal-desc" style="font-size:16px;">
                 输入密码后，弹出 <strong>Apple账户安全</strong> 应该选哪个？
             </div>
             <div class="modal-options">
@@ -183,15 +224,44 @@
                 <button class="modal-btn btn-secondary" onclick="correctAnswer()">
                     其他选项，不升级
                 </button>
+                <button class="modal-btn btn-vip" onclick="openContactModal()">太麻烦了，我要买独享号 👑</button>
             </div>
-            <div style="font-size:12px; color:#000; margin-top:15px;">
+            <div style="font-size:12px; color:#999; margin-top:15px;">
                 答对才能复制密码
             </div>
         </div>
     </div>
 
+    <div id="contactModal" class="modal-overlay">
+        <div class="modal-box contact-box">
+            <div style="text-align:center; margin-bottom:20px;">
+                <div style="font-size:40px;margin-bottom:10px;">👑</div>
+                <div class="modal-title">获取独享账号</div>
+                <div class="modal-desc">一人一号 · 永久使用 · 也是这个价<br>无需担心锁机，售后有保障</div>
+            </div>
+            
+            <div class="contact-row">
+                <div class="contact-info">
+                    <span class="contact-label">微信咨询 (点击复制)</span>
+                    <span class="contact-val" id="wxId">WAITING</span>
+                </div>
+                <div class="contact-action wx" onclick="copyContact('wx')">复制</div>
+            </div>
+
+            <div class="contact-row">
+                <div class="contact-info">
+                    <span class="contact-label">QQ咨询 (点击跳转)</span>
+                    <span class="contact-val" id="qqId">WAITING</span>
+                </div>
+                <div class="contact-action qq" onclick="copyContact('qq')">跳转</div>
+            </div>
+
+            <button class="modal-btn btn-secondary" style="margin-top:15px;" onclick="closeModal('contactModal')">关闭</button>
+        </div>
+    </div>
+
     <div id="main-content">
-        <div class="nav-bg"><div class="nav-title">🍎共享中心</div></div>
+    
 
         <div class="container">
             <div class="alert-card">
@@ -210,10 +280,8 @@
                 </div>
                 <div id="tutorial-body" class="tutorial-content">
                     <div style="margin-bottom:20px;">
-                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">1.登陆步骤必看（不看别登陆）</div>
-                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">2.你看两眼图片行吗（避免双重认证）</div>
-                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">3.双重验证这里解决！！！</div>
-                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">4.看完解决99%的问题！！</div>
+                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">1.严禁在【设置】登录（被锁的都是蠢货）</div>
+                        <div style="margin-bottom:30px;font-weight:600;color:#ff3b30;font-size:30px">2.看完下图能解决99%的问题</div>
                         <img src="./guide.jpg" class="tutorial-img" onclick="openImage(this)" onerror="this.style.display='none'">
                     </div>
                     
@@ -231,8 +299,14 @@
                 <div id="status-tip" class="update-badge">连接中...</div>
             </div>
 
-            <div id="app-fan" class="grid-container"></div>
+            <div id="app-fan" class="grid-container">
+                </div>
         </div>
+    </div>
+
+    <div class="float-bar" onclick="openContactModal()">
+        <div class="float-text">不想共用？<span>购买独享ID (防锁)</span></div>
+        <button class="float-btn">联系客服</button>
     </div>
 
     <div id="imageModal" class="img-modal" onclick="this.style.display='none'">
@@ -240,10 +314,15 @@
     </div>
 
     <script>
+        // 👇👇👇【请在这里修改您的联系方式】👇👇👇
+        const CONTACT_CONFIG = {
+            WECHAT: 'han91918888',  // 请填入微信号
+            QQ: '1656449384'          // 请填入QQ号
+        };
+        // 👆👆👆 修改上面两行即可 👆👆👆
+
         const CONFIG = { 
-            USER: 'ChengHana', 
-            GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', 
-            FILE: 'fan.json'
+            USER: 'ChengHana', GIST: 'e79ed4c61b1c7a5d37292b398ad11c36', FILE: 'fan.json' 
         };
         
         let tempText = ''; 
@@ -251,6 +330,8 @@
         // 页面加载自动获取数据
         window.onload = function() {
             initData();
+            document.getElementById('wxId').innerText = CONTACT_CONFIG.WECHAT;
+            document.getElementById('qqId').innerText = CONTACT_CONFIG.QQ;
         };
 
         async function initData() {
@@ -269,11 +350,36 @@
 
         function renderCards(targetId, data) {
             const container = document.getElementById(targetId);
-            let html = '';
+            
+            // 🟢 核心修改：数据排序
+            // 优先展示 Woko 的数据 (checkTime 字段包含 Woko)
+            data.sort((a, b) => {
+                const aIsWoko = (a.checkTime || '').includes('Woko');
+                const bIsWoko = (b.checkTime || '').includes('Woko');
+                // 如果 b 是 Woko 而 a 不是，b 排前面 (返回正数)
+                // 如果 a 是 Woko 而 b 不是，a 排前面 (返回负数)
+                return bIsWoko - aIsWoko;
+            });
+
+            // 👑 插入 VIP 黄金卡片
+            let html = `
+            <div class="card vip-card">
+                <div class="vip-title">👑 苹果ID独享账号</div>
+                <div class="vip-desc">受够了共享号频繁被顶？来个独享的吧！<br>一人一号 · 可改密码</div>
+                <div class="vip-features">
+                    <span class="vip-tag">美区/国区/日区/韩区（17+）</span>
+                    <span class="vip-tag">带小火箭/成品号</span>
+                </div>
+                <button class="vip-btn" onclick="openContactModal()">点击联系购买 (秒发货)</button>
+            </div>`;
+
             data.forEach((item, index) => {
                 const isNormal = item.status === "正常";
                 const statusHtml = isNormal ? `<span class="status-badge">● 正常</span>` : `<span class="status-badge status-error">● ${item.status}</span>`;
                 
+                // 增加来源显示，方便确认是否是 Woko
+                const sourceTag = item.checkTime ? `<div style="text-align:right; font-size:10px; color:#ccc; margin-top:8px;">来源: ${item.checkTime}</div>` : '';
+
                 html += `
                 <div class="card" style="animation: fadeIn 0.5s ease backwards ${index * 0.05}s">
                     <div class="card-top"><span class="region-badge">${item.region||'全球'}</span>${statusHtml}</div>
@@ -291,11 +397,13 @@
                             <button class="btn-copy danger" onclick="startPasswordFlow('${item.password}')">复制</button>
                         </div>
                     </div>
+                    ${sourceTag}
                 </div>`;
             });
             container.innerHTML = html;
         }
 
+        // 交互逻辑
         function startAccountFlow(text) {
             tempText = text;
             document.getElementById('accountModal').classList.add('active');
@@ -324,6 +432,26 @@
             closeModal('passwordModal');
             performCopy(tempText);
             showToast('✅ 回答正确！密码已复制');
+        }
+
+        // 联系方式逻辑
+        function openContactModal() {
+            closeModal('passwordModal');
+            document.getElementById('contactModal').classList.add('active');
+        }
+        function copyContact(type) {
+            if (type === 'wx') {
+                performCopy(CONTACT_CONFIG.WECHAT);
+                showToast('✅ 微信号已复制，请打开微信添加');
+                setTimeout(() => { location.href = "weixin://"; }, 1500);
+            } else if (type === 'qq') {
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    location.href = `mqqwpa://im/chat?chat_type=wpa&uin=${CONTACT_CONFIG.QQ}&version=1&src_type=web&web_src=oicqzone.com`;
+                } else {
+                    location.href = `tencent://message/?uin=${CONTACT_CONFIG.QQ}&Site=oicqzone.com&Menu=yes`;
+                }
+            }
         }
 
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
